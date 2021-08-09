@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "yiri-mirai-trigger"
+version = "0.1.0"
+description = "[YiriMirai] 事件触发器：提供更多处理事件的方式。"
+packages = [{ include = "mirai" }]
+authors = ["忘忧北萱草 <wybxc@qq.com>"]
+license = "AGPL-3.0"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+yiri-mirai =  ">=0.2.0"
+
+[tool.poetry.dev-dependencies]
+yapf = "^0.31.0"
+toml = "^0.10.2"
+pdoc3 = "^0.10.0"
+mypy = "^0.910"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

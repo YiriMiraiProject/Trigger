@@ -1,0 +1,40 @@
+# deploy on pages
+name: pdoc
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7.11'
+
+      - name: poetry install
+        run: |
+          pip install poetry
+          export POETRY_VIRTUALENVS_CREATE=false
+          poetry install -n
+          
+      - name: run pdoc
+        run: |
+          pdoc --version
+          pdoc --html -o ./docs mirai_extensions.trigger
+          
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: docs # The folder the action should deploy.

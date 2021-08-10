@@ -348,7 +348,7 @@ async def handler(event, payload):
 <p>使用 Trigger 定义触发器，接下来使用 <code>inc.wait</code> 等待触发器。</p>
 <pre><code class="language-python">inc = InterruptControl(bot)
 
-@bus.on(FriendMessage)
+@bot.on(FriendMessage)
 async def on_friend_message(event: FriendMessage):
     if str(event.message_chain).strip() == '你是谁':
         await bot.send(event, '我是 Yiri。你呢？')
@@ -379,7 +379,7 @@ async def on_friend_message(event: FriendMessage):
     ```python
     inc = InterruptControl(bot)
 
-    @bus.on(FriendMessage)
+    @bot.on(FriendMessage)
     async def on_friend_message(event: FriendMessage):
         if str(event.message_chain).strip() == &#39;你是谁&#39;:
             await bot.send(event, &#39;我是 Yiri。你呢？&#39;)

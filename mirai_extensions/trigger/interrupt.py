@@ -20,7 +20,7 @@ class InterruptControl:
     ```python
     inc = InterruptControl(bot)
 
-    @bus.on(FriendMessage)
+    @bot.on(FriendMessage)
     async def on_friend_message(event: FriendMessage):
         if str(event.message_chain).strip() == '你是谁':
             await bot.send(event, '我是 Yiri。你呢？')

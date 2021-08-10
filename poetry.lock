@@ -268,28 +268,23 @@ python-versions = "*"
 
 [[package]]
 name = "yiri-mirai"
-version = "0.2.0"
+version = "0.2.2.1"
 description = "一个轻量级、低耦合的基于 mirai-api-http 的 Python SDK。"
 category = "main"
 optional = false
-python-versions = "^3.7"
-develop = false
+python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
-aiofiles = "^0.7.0"
-httpx = "^0.18.2"
-pydantic = "^1.8.2"
-starlette = ">=0.14.2, < 1.0"
-typing-extensions = {version = "^3.10.0", markers = "python_version == \"3.7\""}
-websockets = "^9.1"
+aiofiles = ">=0.7.0,<0.8.0"
+httpx = ">=0.18.2,<0.19.0"
+pydantic = ">=1.8.2,<2.0.0"
+starlette = ">=0.14.2,<1.0"
+typing-extensions = {version = ">=3.10.0,<4.0.0", markers = "python_version == \"3.7\""}
+websockets = ">=9.1,<10.0"
 
 [package.extras]
 uvicorn = ["uvicorn[standard] (>=0.14.0,<1.0)"]
 hypercorn = ["hypercorn (>=0.11.2,<1.0)"]
-
-[package.source]
-type = "directory"
-url = "../YiriMirai"
 
 [[package]]
 name = "zipp"
@@ -306,7 +301,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "2aba74f410dcbaf5102329ce19e56a4ca9cea8eaefb1dd652d30806e51bb2120"
+content-hash = "68af0d8396020eced00424fd723db3914f671c213fd2820bc34053a6bf308752"
 
 [metadata.files]
 aiofiles = [
@@ -533,7 +528,10 @@ yapf = [
     {file = "yapf-0.31.0-py2.py3-none-any.whl", hash = "sha256:e3a234ba8455fe201eaa649cdac872d590089a18b661e39bbac7020978dd9c2e"},
     {file = "yapf-0.31.0.tar.gz", hash = "sha256:408fb9a2b254c302f49db83c59f9aa0b4b0fd0ec25be3a5c51181327922ff63d"},
 ]
-yiri-mirai = []
+yiri-mirai = [
+    {file = "yiri-mirai-0.2.2.1.tar.gz", hash = "sha256:111c72b6ba205df789b854eee84ad718839c176d681352f07b6684a084385f43"},
+    {file = "yiri_mirai-0.2.2.1-py3-none-any.whl", hash = "sha256:c92d09912c2bcaf9e23a2ff0622076c5f5644d50e7ccdce633fa21abc4f2fbcb"},
+]
 zipp = [
     {file = "zipp-3.5.0-py3-none-any.whl", hash = "sha256:957cfda87797e389580cb8b9e3870841ca991e2125350677b2ca83a0e99390a3"},
     {file = "zipp-3.5.0.tar.gz", hash = "sha256:f5812b1e007e48cff63449a5e9f4e7ebea716b4111f9c4f9a645f91d579bf0c4"},

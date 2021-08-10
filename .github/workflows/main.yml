@@ -27,12 +27,13 @@ jobs:
           pip install poetry
           export POETRY_VIRTUALENVS_CREATE=false
           poetry install -n
-          
+
       - name: run pdoc
         run: |
           pdoc --version
           pdoc --html -o ./docs mirai_extensions.trigger
-          
+          mv ./docs/mirai_extensions/trigger ./docs
+
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:

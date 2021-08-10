@@ -2,7 +2,7 @@
 name = "yiri-mirai-trigger"
 version = "0.1.0"
 description = "[YiriMirai] 事件触发器：提供更多处理事件的方式。"
-packages = [{ include = "mirai" }]
+packages = [{ include = "mirai_extensions" }]
 authors = ["忘忧北萱草 <wybxc@qq.com>"]
 license = "AGPL-3.0"
 

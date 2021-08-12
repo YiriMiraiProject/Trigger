@@ -19,6 +19,8 @@ poetry add yiri-mirai-trigger
 ### 中断控制器
 
 ```python
+from mirai_extensions.trigger import Trigger, InterruptControl
+
 inc = InterruptControl(bot)
 
 @bot.on(FriendMessage)
@@ -54,7 +56,7 @@ async def handler(event: FriendMessage, payload: str):
     ...
 ```
 
-更多信息，请参考文档（正在编写中）。
+更多信息，请参考[文档](https://yiri-mirai.vercel.app/docs/extensions/trigger)或 [API 文档](https://yirimiraiproject.github.io/Trigger)。
 
 ## 开源协议
 

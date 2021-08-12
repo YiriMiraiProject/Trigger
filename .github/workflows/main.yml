@@ -32,7 +32,7 @@ jobs:
         run: |
           pdoc --version
           pdoc --html -o ./docs mirai_extensions.trigger
-          mv ./docs/mirai_extensions/trigger ./docs
+          mv ./docs/mirai_extensions/trigger/* ./docs
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@4.1.4

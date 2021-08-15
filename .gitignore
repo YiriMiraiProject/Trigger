@@ -129,7 +129,7 @@ dmypy.json
 .pyre/
 
 # test cases
-/test.py
+/*.py
 
 # pdoc documents
 /docs

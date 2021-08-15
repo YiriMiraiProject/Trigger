@@ -11,6 +11,8 @@ from mirai.utils import async_
 
 TEvent = TypeVar('TEvent')
 
+TFilter = Callable[[TEvent], Union[Awaitable[Any], Any]]
+
 
 class Trigger(Generic[TEvent]):
     """事件触发器，提供对事件进行选择性过滤和解析的功能。
@@ -73,47 +75,43 @@ class Trigger(Generic[TEvent]):
     """
     event_name: Type[TEvent]
     """监听的事件类型。"""
-    filter: Optional[Callable[[TEvent], Union[Awaitable[Any], Any]]]
+    filter: Optional[TFilter[TEvent]]
     """过滤器。"""
     priority: int
     """优先级，小者优先。"""
-    _future: Optional[asyncio.Future]
-    _waited: bool
-
     def __init__(
         self,
         event_name: Type[TEvent],
         priority: int = 0,
-        filter: Optional[Callable[[TEvent], Union[Awaitable[Any], Any]]] = None
+        filter: Optional[TFilter[TEvent]] = None
     ):
         """
-        `event_name: Type[TEvent]` 事件类型。
-
-        `priority: int` 优先级，小者优先。
-
-        `filter: Optional[Callable[[TEvent], Union[Awaitable[Any], Any]]]` 过滤器。
+        Args:
+            event_name (`Type[TEvent]`): 事件类型。
+            priority (`int`): 优先级，小者优先。
+            filter (`Optional[TFilter[TEvent]]`): 过滤器。
         """
         self.event_name = event_name
         self.priority = priority
-        self.filter = filter
-        self._future = None
-        self._waited = False
+        if filter:
+            self.set_filter(filter)
+        self._future: Optional[asyncio.Future] = None
+        self._waited: bool = False
 
     def __del__(self):
         if self._future:
             self._future.cancel()
 
-    def set_filter(
-        self, filter: Callable[[TEvent], Union[Awaitable[Any], Any]]
-    ):
+    def set_filter(self, filter: TFilter[TEvent]):
         """设置过滤器。
 
-        `filter: Callable[[TEvent], Union[Awaitable[Any], Any]]` 过滤器。
+        Args:
+            filter (`TFilter[TEvent]`): 过滤器。
         """
         self.filter = filter
         return filter
 
-    def __call__(self, filter: Callable[[TEvent], Union[Awaitable[Any], Any]]):
+    def __call__(self, filter: TFilter[TEvent]):
         self.set_filter(filter)
         return self
 
@@ -125,10 +123,11 @@ class Trigger(Generic[TEvent]):
 
         事件捕获成功后，触发器会进入已完成状态。
 
-        `event: TEvent` 事件。
+        Args
+            event (`TEvent`): 事件。
 
         Returns:
-            bool: 捕获成功与否。
+            `bool`: 捕获成功与否。
         """
         if self._future is None or self.done():
             return False
@@ -157,7 +156,8 @@ class Trigger(Generic[TEvent]):
 
         回调函数接受唯一参数：触发器本身。
 
-        `callback: Callable[['Trigger'], Any]` 回调函数。
+        Args:
+            callback (`Callable[['Trigger'], Any]`): 回调函数。
         """
         if self._future:
             self._future.add_done_callback(lambda _: callback(self))
@@ -168,6 +168,9 @@ class Trigger(Generic[TEvent]):
         此方法将丢弃当前结果，并将触发器设置为未完成状态。
 
         注意，此方法必须被异步函数调用或间接调用。
+
+        Returns:
+            `Trigger[TEvent]`: 触发器本身。
         """
         if self._future:
             self._future.cancel()
@@ -178,7 +181,12 @@ class Trigger(Generic[TEvent]):
     async def wait(self, timeout: float = 0.):
         """等待事件触发，返回事件触发器的结果。
 
-        `timeout: float = 0.` 超时时间，单位为秒。如果等待超时，将返回 None。
+        Args:
+            timeout (`float`): 超时时间，单位为秒。
+
+        Returns:
+            `Any`: 触发器的结果。
+            `None`: 触发器超时。
         """
         if self._waited:
             raise RuntimeError('触发器已被等待。')

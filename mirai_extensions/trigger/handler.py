@@ -41,7 +41,8 @@ class HandlerControl(AbstractEventBus):
 
     def __init__(self, bus: AbstractEventBus):
         """
-        `bus: AbstractEventBus` 事件总线。
+        Args:
+            bus (`AbstractEventBus`): 事件总线。
         """
         self.bus = bus
         self._handlers = {}
@@ -49,11 +50,10 @@ class HandlerControl(AbstractEventBus):
     def subscribe(self, event: Trigger, func: Callable, priority: int = 0):
         """注册一个触发器的处理器。
 
-        `event: Trigger` 触发器。
-
-        `func: Callable` 处理器。
-
-        `priority: int` 处理器的优先级，小者优先。
+        Args:
+            event (`Trigger`): 触发器。
+            func (`Callable`): 处理器。
+            priority (`int`): 处理器的优先级，小者优先。
         """
         trigger = event
         del event
@@ -80,9 +80,9 @@ class HandlerControl(AbstractEventBus):
     def unsubscribe(self, event: Trigger, func: Callable):
         """取消一个触发器的处理器。
 
-        `event: Trigger` 触发器。
-
-        `func: Callable` 处理器。
+        Args:
+            event (`Trigger`): 触发器。
+            func (`Callable`): 处理器。
         """
         try:
             self._handlers[event].remove(func)
@@ -92,17 +92,16 @@ class HandlerControl(AbstractEventBus):
     def on(self, event: Trigger, priority: int = 0):
         """以装饰器的形式注册一个触发器的处理器。
 
-        `event: Trigger` 触发器。
-
-        `priority: int` 处理器的优先级，小者优先。
-
         例如：
-
         ```python
         @hdc.on(trigger)
         async def handler(event, payload):
             ...
         ```
+
+        Args:
+            event (`Trigger`): 触发器。
+            priority (`int`): 处理器的优先级，小者优先。
         """
         def decorator(func: Callable) -> Callable:
             self.subscribe(event, func, priority)
@@ -113,8 +112,8 @@ class HandlerControl(AbstractEventBus):
     async def emit(self, event, *args, **kwargs) -> List[Awaitable[Any]]:
         """发送事件。
 
-        `event` 事件名。
-
-        `*args, **kwargs` 发送的参数。
+        Args:
+            event: 事件名。
+            *args, **kwargs: 发送的参数。
         """
         return await self.bus.emit(event, *args, **kwargs)

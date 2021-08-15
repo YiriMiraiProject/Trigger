@@ -70,7 +70,8 @@ class HandlerControl(AbstractEventBus):
 
     def __init__(self, bus: AbstractEventBus):
         &#34;&#34;&#34;
-        `bus: AbstractEventBus` 事件总线。
+        Args:
+            bus (`AbstractEventBus`): 事件总线。
         &#34;&#34;&#34;
         self.bus = bus
         self._handlers = {}
@@ -78,11 +79,10 @@ class HandlerControl(AbstractEventBus):
     def subscribe(self, event: Trigger, func: Callable, priority: int = 0):
         &#34;&#34;&#34;注册一个触发器的处理器。
 
-        `event: Trigger` 触发器。
-
-        `func: Callable` 处理器。
-
-        `priority: int` 处理器的优先级，小者优先。
+        Args:
+            event (`Trigger`): 触发器。
+            func (`Callable`): 处理器。
+            priority (`int`): 处理器的优先级，小者优先。
         &#34;&#34;&#34;
         trigger = event
         del event
@@ -109,9 +109,9 @@ class HandlerControl(AbstractEventBus):
     def unsubscribe(self, event: Trigger, func: Callable):
         &#34;&#34;&#34;取消一个触发器的处理器。
 
-        `event: Trigger` 触发器。
-
-        `func: Callable` 处理器。
+        Args:
+            event (`Trigger`): 触发器。
+            func (`Callable`): 处理器。
         &#34;&#34;&#34;
         try:
             self._handlers[event].remove(func)
@@ -121,17 +121,16 @@ class HandlerControl(AbstractEventBus):
     def on(self, event: Trigger, priority: int = 0):
         &#34;&#34;&#34;以装饰器的形式注册一个触发器的处理器。
 
-        `event: Trigger` 触发器。
-
-        `priority: int` 处理器的优先级，小者优先。
-
         例如：
-
         ```python
         @hdc.on(trigger)
         async def handler(event, payload):
             ...
         ```
+
+        Args:
+            event (`Trigger`): 触发器。
+            priority (`int`): 处理器的优先级，小者优先。
         &#34;&#34;&#34;
         def decorator(func: Callable) -&gt; Callable:
             self.subscribe(event, func, priority)
@@ -142,9 +141,9 @@ class HandlerControl(AbstractEventBus):
     async def emit(self, event, *args, **kwargs) -&gt; List[Awaitable[Any]]:
         &#34;&#34;&#34;发送事件。
 
-        `event` 事件名。
-
-        `*args, **kwargs` 发送的参数。
+        Args:
+            event: 事件名。
+            *args, **kwargs: 发送的参数。
         &#34;&#34;&#34;
         return await self.bus.emit(event, *args, **kwargs)</code></pre>
 </details>
@@ -179,7 +178,8 @@ async def trigger(event: FriendMessage):
 async def handler(event: FriendMessage, payload: str):
     ...
 </code></pre>
-<p><code>bus: AbstractEventBus</code> 事件总线。</p></div>
+<h2 id="args">Args</h2>
+<p>bus (<code>AbstractEventBus</code>): 事件总线。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -211,7 +211,8 @@ async def handler(event: FriendMessage, payload: str):
 
     def __init__(self, bus: AbstractEventBus):
         &#34;&#34;&#34;
-        `bus: AbstractEventBus` 事件总线。
+        Args:
+            bus (`AbstractEventBus`): 事件总线。
         &#34;&#34;&#34;
         self.bus = bus
         self._handlers = {}
@@ -219,11 +220,10 @@ async def handler(event: FriendMessage, payload: str):
     def subscribe(self, event: Trigger, func: Callable, priority: int = 0):
         &#34;&#34;&#34;注册一个触发器的处理器。
 
-        `event: Trigger` 触发器。
-
-        `func: Callable` 处理器。
-
-        `priority: int` 处理器的优先级，小者优先。
+        Args:
+            event (`Trigger`): 触发器。
+            func (`Callable`): 处理器。
+            priority (`int`): 处理器的优先级，小者优先。
         &#34;&#34;&#34;
         trigger = event
         del event
@@ -250,9 +250,9 @@ async def handler(event: FriendMessage, payload: str):
     def unsubscribe(self, event: Trigger, func: Callable):
         &#34;&#34;&#34;取消一个触发器的处理器。
 
-        `event: Trigger` 触发器。
-
-        `func: Callable` 处理器。
+        Args:
+            event (`Trigger`): 触发器。
+            func (`Callable`): 处理器。
         &#34;&#34;&#34;
         try:
             self._handlers[event].remove(func)
@@ -262,17 +262,16 @@ async def handler(event: FriendMessage, payload: str):
     def on(self, event: Trigger, priority: int = 0):
         &#34;&#34;&#34;以装饰器的形式注册一个触发器的处理器。
 
-        `event: Trigger` 触发器。
-
-        `priority: int` 处理器的优先级，小者优先。
-
         例如：
-
         ```python
         @hdc.on(trigger)
         async def handler(event, payload):
             ...
         ```
+
+        Args:
+            event (`Trigger`): 触发器。
+            priority (`int`): 处理器的优先级，小者优先。
         &#34;&#34;&#34;
         def decorator(func: Callable) -&gt; Callable:
             self.subscribe(event, func, priority)
@@ -283,9 +282,9 @@ async def handler(event: FriendMessage, payload: str):
     async def emit(self, event, *args, **kwargs) -&gt; List[Awaitable[Any]]:
         &#34;&#34;&#34;发送事件。
 
-        `event` 事件名。
-
-        `*args, **kwargs` 发送的参数。
+        Args:
+            event: 事件名。
+            *args, **kwargs: 发送的参数。
         &#34;&#34;&#34;
         return await self.bus.emit(event, *args, **kwargs)</code></pre>
 </details>
@@ -307,8 +306,12 @@ async def handler(event: FriendMessage, payload: str):
 </code></dt>
 <dd>
 <div class="desc"><p>发送事件。</p>
-<p><code>event</code> 事件名。</p>
-<p><code>*args, **kwargs</code> 发送的参数。</p></div>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>event</code></strong></dt>
+<dd>事件名。</dd>
+</dl>
+<p><em>args, </em>*kwargs: 发送的参数。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -316,9 +319,9 @@ async def handler(event: FriendMessage, payload: str):
 <pre><code class="python">async def emit(self, event, *args, **kwargs) -&gt; List[Awaitable[Any]]:
     &#34;&#34;&#34;发送事件。
 
-    `event` 事件名。
-
-    `*args, **kwargs` 发送的参数。
+    Args:
+        event: 事件名。
+        *args, **kwargs: 发送的参数。
     &#34;&#34;&#34;
     return await self.bus.emit(event, *args, **kwargs)</code></pre>
 </details>
@@ -328,13 +331,14 @@ async def handler(event: FriendMessage, payload: str):
 </code></dt>
 <dd>
 <div class="desc"><p>以装饰器的形式注册一个触发器的处理器。</p>
-<p><code>event: Trigger</code> 触发器。</p>
-<p><code>priority: int</code> 处理器的优先级，小者优先。</p>
 <p>例如：</p>
 <pre><code class="language-python">@hdc.on(trigger)
 async def handler(event, payload):
     ...
-</code></pre></div>
+</code></pre>
+<h2 id="args">Args</h2>
+<p>event (<code>Trigger</code>): 触发器。
+priority (<code>int</code>): 处理器的优先级，小者优先。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -342,17 +346,16 @@ async def handler(event, payload):
 <pre><code class="python">def on(self, event: Trigger, priority: int = 0):
     &#34;&#34;&#34;以装饰器的形式注册一个触发器的处理器。
 
-    `event: Trigger` 触发器。
-
-    `priority: int` 处理器的优先级，小者优先。
-
     例如：
-
     ```python
     @hdc.on(trigger)
     async def handler(event, payload):
         ...
     ```
+
+    Args:
+        event (`Trigger`): 触发器。
+        priority (`int`): 处理器的优先级，小者优先。
     &#34;&#34;&#34;
     def decorator(func: Callable) -&gt; Callable:
         self.subscribe(event, func, priority)
@@ -366,9 +369,10 @@ async def handler(event, payload):
 </code></dt>
 <dd>
 <div class="desc"><p>注册一个触发器的处理器。</p>
-<p><code>event: Trigger</code> 触发器。</p>
-<p><code>func: Callable</code> 处理器。</p>
-<p><code>priority: int</code> 处理器的优先级，小者优先。</p></div>
+<h2 id="args">Args</h2>
+<p>event (<code>Trigger</code>): 触发器。
+func (<code>Callable</code>): 处理器。
+priority (<code>int</code>): 处理器的优先级，小者优先。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -376,11 +380,10 @@ async def handler(event, payload):
 <pre><code class="python">def subscribe(self, event: Trigger, func: Callable, priority: int = 0):
     &#34;&#34;&#34;注册一个触发器的处理器。
 
-    `event: Trigger` 触发器。
-
-    `func: Callable` 处理器。
-
-    `priority: int` 处理器的优先级，小者优先。
+    Args:
+        event (`Trigger`): 触发器。
+        func (`Callable`): 处理器。
+        priority (`int`): 处理器的优先级，小者优先。
     &#34;&#34;&#34;
     trigger = event
     del event
@@ -410,8 +413,9 @@ async def handler(event, payload):
 </code></dt>
 <dd>
 <div class="desc"><p>取消一个触发器的处理器。</p>
-<p><code>event: Trigger</code> 触发器。</p>
-<p><code>func: Callable</code> 处理器。</p></div>
+<h2 id="args">Args</h2>
+<p>event (<code>Trigger</code>): 触发器。
+func (<code>Callable</code>): 处理器。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -419,9 +423,9 @@ async def handler(event, payload):
 <pre><code class="python">def unsubscribe(self, event: Trigger, func: Callable):
     &#34;&#34;&#34;取消一个触发器的处理器。
 
-    `event: Trigger` 触发器。
-
-    `func: Callable` 处理器。
+    Args:
+        event (`Trigger`): 触发器。
+        func (`Callable`): 处理器。
     &#34;&#34;&#34;
     try:
         self._handlers[event].remove(func)

@@ -70,9 +70,9 @@ class InterruptControl:
     &#34;&#34;&#34;
     def __init__(self, bus: AbstractEventBus, priority: int = 15):
         &#34;&#34;&#34;
-        `bus: AbstractEventBus` 事件总线。
-
-        `priority: int = 15` 中断控制器工作的优先级。
+        Args:
+            bus (`AbstractEventBus`): 事件总线。
+            priority (`int`): 中断控制器工作的优先级，默认值 15。
         &#34;&#34;&#34;
         self.bus = bus
         self._triggers: Dict[Any, PriorityDict[Trigger]] = {}
@@ -95,9 +95,13 @@ class InterruptControl:
     async def wait(self, trigger: Trigger, timeout: float = 0.):
         &#34;&#34;&#34;监听一个触发器，等待其完成。
 
-        `trigger: Trigger` 触发器。
+        Args:
+            trigger (`Trigger`): 触发器。
+            timeout (`float`): 超时时间，单位为秒。
 
-        `timeout: float = 0.` 超时时间，单位为秒。
+        Returns:
+            `Any`: 触发器的结果。
+            `None`: 触发器超时。
         &#34;&#34;&#34;
         event_name = trigger.event_name
 
@@ -150,8 +154,9 @@ async def on_friend_message(event: FriendMessage):
             await bot.send(event, f'你好，{name}。')
 </code></pre>
 <p><code>inc.wait</code> 的返回值为触发器中过滤器的返回值，或者当达到超时后，返回 <code>None</code>。</p>
-<p><code>bus: AbstractEventBus</code> 事件总线。</p>
-<p><code>priority: int = 15</code> 中断控制器工作的优先级。</p></div>
+<h2 id="args">Args</h2>
+<p>bus (<code>AbstractEventBus</code>): 事件总线。
+priority (<code>int</code>): 中断控制器工作的优先级，默认值 15。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -185,9 +190,9 @@ async def on_friend_message(event: FriendMessage):
     &#34;&#34;&#34;
     def __init__(self, bus: AbstractEventBus, priority: int = 15):
         &#34;&#34;&#34;
-        `bus: AbstractEventBus` 事件总线。
-
-        `priority: int = 15` 中断控制器工作的优先级。
+        Args:
+            bus (`AbstractEventBus`): 事件总线。
+            priority (`int`): 中断控制器工作的优先级，默认值 15。
         &#34;&#34;&#34;
         self.bus = bus
         self._triggers: Dict[Any, PriorityDict[Trigger]] = {}
@@ -210,9 +215,13 @@ async def on_friend_message(event: FriendMessage):
     async def wait(self, trigger: Trigger, timeout: float = 0.):
         &#34;&#34;&#34;监听一个触发器，等待其完成。
 
-        `trigger: Trigger` 触发器。
+        Args:
+            trigger (`Trigger`): 触发器。
+            timeout (`float`): 超时时间，单位为秒。
 
-        `timeout: float = 0.` 超时时间，单位为秒。
+        Returns:
+            `Any`: 触发器的结果。
+            `None`: 触发器超时。
         &#34;&#34;&#34;
         event_name = trigger.event_name
 
@@ -236,8 +245,12 @@ async def on_friend_message(event: FriendMessage):
 </code></dt>
 <dd>
 <div class="desc"><p>监听一个触发器，等待其完成。</p>
-<p><code>trigger: Trigger</code> 触发器。</p>
-<p><code>timeout: float = 0.</code> 超时时间，单位为秒。</p></div>
+<h2 id="args">Args</h2>
+<p>trigger (<code>Trigger</code>): 触发器。
+timeout (<code>float</code>): 超时时间，单位为秒。</p>
+<h2 id="returns">Returns</h2>
+<p><code>Any</code>: 触发器的结果。
+<code>None</code>: 触发器超时。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -245,9 +258,13 @@ async def on_friend_message(event: FriendMessage):
 <pre><code class="python">async def wait(self, trigger: Trigger, timeout: float = 0.):
     &#34;&#34;&#34;监听一个触发器，等待其完成。
 
-    `trigger: Trigger` 触发器。
+    Args:
+        trigger (`Trigger`): 触发器。
+        timeout (`float`): 超时时间，单位为秒。
 
-    `timeout: float = 0.` 超时时间，单位为秒。
+    Returns:
+        `Any`: 触发器的结果。
+        `None`: 触发器超时。
     &#34;&#34;&#34;
     event_name = trigger.event_name
 

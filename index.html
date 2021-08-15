@@ -49,13 +49,13 @@ __all__ = [&#39;Trigger&#39;, &#39;InterruptControl&#39;, &#39;HandlerControl&#3
 <dd>
 <div class="desc"><p>本模块提供中断控制器相关。</p></div>
 </dd>
+<dt><code class="name"><a title="mirai_extensions.trigger.message" href="message.html">mirai_extensions.trigger.message</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt><code class="name"><a title="mirai_extensions.trigger.trigger" href="trigger.html">mirai_extensions.trigger.trigger</a></code></dt>
 <dd>
 <div class="desc"><p>此模块提供事件触发器相关。</p></div>
-</dd>
-<dt><code class="name"><a title="mirai_extensions.trigger.utils" href="utils.html">mirai_extensions.trigger.utils</a></code></dt>
-<dd>
-<div class="desc"></div>
 </dd>
 </dl>
 </section>
@@ -87,7 +87,8 @@ async def trigger(event: FriendMessage):
 async def handler(event: FriendMessage, payload: str):
     ...
 </code></pre>
-<p><code>bus: AbstractEventBus</code> 事件总线。</p></div>
+<h2 id="args">Args</h2>
+<p>bus (<code>AbstractEventBus</code>): 事件总线。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -119,7 +120,8 @@ async def handler(event: FriendMessage, payload: str):
 
     def __init__(self, bus: AbstractEventBus):
         &#34;&#34;&#34;
-        `bus: AbstractEventBus` 事件总线。
+        Args:
+            bus (`AbstractEventBus`): 事件总线。
         &#34;&#34;&#34;
         self.bus = bus
         self._handlers = {}
@@ -127,11 +129,10 @@ async def handler(event: FriendMessage, payload: str):
     def subscribe(self, event: Trigger, func: Callable, priority: int = 0):
         &#34;&#34;&#34;注册一个触发器的处理器。
 
-        `event: Trigger` 触发器。
-
-        `func: Callable` 处理器。
-
-        `priority: int` 处理器的优先级，小者优先。
+        Args:
+            event (`Trigger`): 触发器。
+            func (`Callable`): 处理器。
+            priority (`int`): 处理器的优先级，小者优先。
         &#34;&#34;&#34;
         trigger = event
         del event
@@ -158,9 +159,9 @@ async def handler(event: FriendMessage, payload: str):
     def unsubscribe(self, event: Trigger, func: Callable):
         &#34;&#34;&#34;取消一个触发器的处理器。
 
-        `event: Trigger` 触发器。
-
-        `func: Callable` 处理器。
+        Args:
+            event (`Trigger`): 触发器。
+            func (`Callable`): 处理器。
         &#34;&#34;&#34;
         try:
             self._handlers[event].remove(func)
@@ -170,17 +171,16 @@ async def handler(event: FriendMessage, payload: str):
     def on(self, event: Trigger, priority: int = 0):
         &#34;&#34;&#34;以装饰器的形式注册一个触发器的处理器。
 
-        `event: Trigger` 触发器。
-
-        `priority: int` 处理器的优先级，小者优先。
-
         例如：
-
         ```python
         @hdc.on(trigger)
         async def handler(event, payload):
             ...
         ```
+
+        Args:
+            event (`Trigger`): 触发器。
+            priority (`int`): 处理器的优先级，小者优先。
         &#34;&#34;&#34;
         def decorator(func: Callable) -&gt; Callable:
             self.subscribe(event, func, priority)
@@ -191,9 +191,9 @@ async def handler(event: FriendMessage, payload: str):
     async def emit(self, event, *args, **kwargs) -&gt; List[Awaitable[Any]]:
         &#34;&#34;&#34;发送事件。
 
-        `event` 事件名。
-
-        `*args, **kwargs` 发送的参数。
+        Args:
+            event: 事件名。
+            *args, **kwargs: 发送的参数。
         &#34;&#34;&#34;
         return await self.bus.emit(event, *args, **kwargs)</code></pre>
 </details>
@@ -215,8 +215,12 @@ async def handler(event: FriendMessage, payload: str):
 </code></dt>
 <dd>
 <div class="desc"><p>发送事件。</p>
-<p><code>event</code> 事件名。</p>
-<p><code>*args, **kwargs</code> 发送的参数。</p></div>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>event</code></strong></dt>
+<dd>事件名。</dd>
+</dl>
+<p><em>args, </em>*kwargs: 发送的参数。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -224,9 +228,9 @@ async def handler(event: FriendMessage, payload: str):
 <pre><code class="python">async def emit(self, event, *args, **kwargs) -&gt; List[Awaitable[Any]]:
     &#34;&#34;&#34;发送事件。
 
-    `event` 事件名。
-
-    `*args, **kwargs` 发送的参数。
+    Args:
+        event: 事件名。
+        *args, **kwargs: 发送的参数。
     &#34;&#34;&#34;
     return await self.bus.emit(event, *args, **kwargs)</code></pre>
 </details>
@@ -236,13 +240,14 @@ async def handler(event: FriendMessage, payload: str):
 </code></dt>
 <dd>
 <div class="desc"><p>以装饰器的形式注册一个触发器的处理器。</p>
-<p><code>event: Trigger</code> 触发器。</p>
-<p><code>priority: int</code> 处理器的优先级，小者优先。</p>
 <p>例如：</p>
 <pre><code class="language-python">@hdc.on(trigger)
 async def handler(event, payload):
     ...
-</code></pre></div>
+</code></pre>
+<h2 id="args">Args</h2>
+<p>event (<code><a title="mirai_extensions.trigger.Trigger" href="#mirai_extensions.trigger.Trigger">Trigger</a></code>): 触发器。
+priority (<code>int</code>): 处理器的优先级，小者优先。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -250,17 +255,16 @@ async def handler(event, payload):
 <pre><code class="python">def on(self, event: Trigger, priority: int = 0):
     &#34;&#34;&#34;以装饰器的形式注册一个触发器的处理器。
 
-    `event: Trigger` 触发器。
-
-    `priority: int` 处理器的优先级，小者优先。
-
     例如：
-
     ```python
     @hdc.on(trigger)
     async def handler(event, payload):
         ...
     ```
+
+    Args:
+        event (`Trigger`): 触发器。
+        priority (`int`): 处理器的优先级，小者优先。
     &#34;&#34;&#34;
     def decorator(func: Callable) -&gt; Callable:
         self.subscribe(event, func, priority)
@@ -274,9 +278,10 @@ async def handler(event, payload):
 </code></dt>
 <dd>
 <div class="desc"><p>注册一个触发器的处理器。</p>
-<p><code>event: Trigger</code> 触发器。</p>
-<p><code>func: Callable</code> 处理器。</p>
-<p><code>priority: int</code> 处理器的优先级，小者优先。</p></div>
+<h2 id="args">Args</h2>
+<p>event (<code><a title="mirai_extensions.trigger.Trigger" href="#mirai_extensions.trigger.Trigger">Trigger</a></code>): 触发器。
+func (<code>Callable</code>): 处理器。
+priority (<code>int</code>): 处理器的优先级，小者优先。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -284,11 +289,10 @@ async def handler(event, payload):
 <pre><code class="python">def subscribe(self, event: Trigger, func: Callable, priority: int = 0):
     &#34;&#34;&#34;注册一个触发器的处理器。
 
-    `event: Trigger` 触发器。
-
-    `func: Callable` 处理器。
-
-    `priority: int` 处理器的优先级，小者优先。
+    Args:
+        event (`Trigger`): 触发器。
+        func (`Callable`): 处理器。
+        priority (`int`): 处理器的优先级，小者优先。
     &#34;&#34;&#34;
     trigger = event
     del event
@@ -318,8 +322,9 @@ async def handler(event, payload):
 </code></dt>
 <dd>
 <div class="desc"><p>取消一个触发器的处理器。</p>
-<p><code>event: Trigger</code> 触发器。</p>
-<p><code>func: Callable</code> 处理器。</p></div>
+<h2 id="args">Args</h2>
+<p>event (<code><a title="mirai_extensions.trigger.Trigger" href="#mirai_extensions.trigger.Trigger">Trigger</a></code>): 触发器。
+func (<code>Callable</code>): 处理器。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -327,9 +332,9 @@ async def handler(event, payload):
 <pre><code class="python">def unsubscribe(self, event: Trigger, func: Callable):
     &#34;&#34;&#34;取消一个触发器的处理器。
 
-    `event: Trigger` 触发器。
-
-    `func: Callable` 处理器。
+    Args:
+        event (`Trigger`): 触发器。
+        func (`Callable`): 处理器。
     &#34;&#34;&#34;
     try:
         self._handlers[event].remove(func)
@@ -365,8 +370,9 @@ async def on_friend_message(event: FriendMessage):
             await bot.send(event, f'你好，{name}。')
 </code></pre>
 <p><code>inc.wait</code> 的返回值为触发器中过滤器的返回值，或者当达到超时后，返回 <code>None</code>。</p>
-<p><code>bus: AbstractEventBus</code> 事件总线。</p>
-<p><code>priority: int = 15</code> 中断控制器工作的优先级。</p></div>
+<h2 id="args">Args</h2>
+<p>bus (<code>AbstractEventBus</code>): 事件总线。
+priority (<code>int</code>): 中断控制器工作的优先级，默认值 15。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -400,9 +406,9 @@ async def on_friend_message(event: FriendMessage):
     &#34;&#34;&#34;
     def __init__(self, bus: AbstractEventBus, priority: int = 15):
         &#34;&#34;&#34;
-        `bus: AbstractEventBus` 事件总线。
-
-        `priority: int = 15` 中断控制器工作的优先级。
+        Args:
+            bus (`AbstractEventBus`): 事件总线。
+            priority (`int`): 中断控制器工作的优先级，默认值 15。
         &#34;&#34;&#34;
         self.bus = bus
         self._triggers: Dict[Any, PriorityDict[Trigger]] = {}
@@ -425,9 +431,13 @@ async def on_friend_message(event: FriendMessage):
     async def wait(self, trigger: Trigger, timeout: float = 0.):
         &#34;&#34;&#34;监听一个触发器，等待其完成。
 
-        `trigger: Trigger` 触发器。
+        Args:
+            trigger (`Trigger`): 触发器。
+            timeout (`float`): 超时时间，单位为秒。
 
-        `timeout: float = 0.` 超时时间，单位为秒。
+        Returns:
+            `Any`: 触发器的结果。
+            `None`: 触发器超时。
         &#34;&#34;&#34;
         event_name = trigger.event_name
 
@@ -451,8 +461,12 @@ async def on_friend_message(event: FriendMessage):
 </code></dt>
 <dd>
 <div class="desc"><p>监听一个触发器，等待其完成。</p>
-<p><code>trigger: Trigger</code> 触发器。</p>
-<p><code>timeout: float = 0.</code> 超时时间，单位为秒。</p></div>
+<h2 id="args">Args</h2>
+<p>trigger (<code><a title="mirai_extensions.trigger.Trigger" href="#mirai_extensions.trigger.Trigger">Trigger</a></code>): 触发器。
+timeout (<code>float</code>): 超时时间，单位为秒。</p>
+<h2 id="returns">Returns</h2>
+<p><code>Any</code>: 触发器的结果。
+<code>None</code>: 触发器超时。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -460,9 +474,13 @@ async def on_friend_message(event: FriendMessage):
 <pre><code class="python">async def wait(self, trigger: Trigger, timeout: float = 0.):
     &#34;&#34;&#34;监听一个触发器，等待其完成。
 
-    `trigger: Trigger` 触发器。
+    Args:
+        trigger (`Trigger`): 触发器。
+        timeout (`float`): 超时时间，单位为秒。
 
-    `timeout: float = 0.` 超时时间，单位为秒。
+    Returns:
+        `Any`: 触发器的结果。
+        `None`: 触发器超时。
     &#34;&#34;&#34;
     event_name = trigger.event_name
 
@@ -528,9 +546,10 @@ def trigger_three(event: FriendMessage):
 </code></pre>
 <p><code>wait</code> 方法有一个可选的 <code>timeout</code> 参数，表示等待的限时，如果超时则返回 None。</p>
 <p>使用 <code>catch</code> 方法尝试捕获事件。事件捕获成功后，触发器会进入已完成状态。</p>
-<p><code>event_name: Type[TEvent]</code> 事件类型。</p>
-<p><code>priority: int</code> 优先级，小者优先。</p>
-<p><code>filter: Optional[Callable[[TEvent], Union[Awaitable[Any], Any]]]</code> 过滤器。</p></div>
+<h2 id="args">Args</h2>
+<p>event_name (<code>Type[TEvent]</code>): 事件类型。
+priority (<code>int</code>): 优先级，小者优先。
+filter (<code>Optional[TFilter[TEvent]]</code>): 过滤器。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -596,47 +615,43 @@ def trigger_three(event: FriendMessage):
     &#34;&#34;&#34;
     event_name: Type[TEvent]
     &#34;&#34;&#34;监听的事件类型。&#34;&#34;&#34;
-    filter: Optional[Callable[[TEvent], Union[Awaitable[Any], Any]]]
+    filter: Optional[TFilter[TEvent]]
     &#34;&#34;&#34;过滤器。&#34;&#34;&#34;
     priority: int
     &#34;&#34;&#34;优先级，小者优先。&#34;&#34;&#34;
-    _future: Optional[asyncio.Future]
-    _waited: bool
-
     def __init__(
         self,
         event_name: Type[TEvent],
         priority: int = 0,
-        filter: Optional[Callable[[TEvent], Union[Awaitable[Any], Any]]] = None
+        filter: Optional[TFilter[TEvent]] = None
     ):
         &#34;&#34;&#34;
-        `event_name: Type[TEvent]` 事件类型。
-
-        `priority: int` 优先级，小者优先。
-
-        `filter: Optional[Callable[[TEvent], Union[Awaitable[Any], Any]]]` 过滤器。
+        Args:
+            event_name (`Type[TEvent]`): 事件类型。
+            priority (`int`): 优先级，小者优先。
+            filter (`Optional[TFilter[TEvent]]`): 过滤器。
         &#34;&#34;&#34;
         self.event_name = event_name
         self.priority = priority
-        self.filter = filter
-        self._future = None
-        self._waited = False
+        if filter:
+            self.set_filter(filter)
+        self._future: Optional[asyncio.Future] = None
+        self._waited: bool = False
 
     def __del__(self):
         if self._future:
             self._future.cancel()
 
-    def set_filter(
-        self, filter: Callable[[TEvent], Union[Awaitable[Any], Any]]
-    ):
+    def set_filter(self, filter: TFilter[TEvent]):
         &#34;&#34;&#34;设置过滤器。
 
-        `filter: Callable[[TEvent], Union[Awaitable[Any], Any]]` 过滤器。
+        Args:
+            filter (`TFilter[TEvent]`): 过滤器。
         &#34;&#34;&#34;
         self.filter = filter
         return filter
 
-    def __call__(self, filter: Callable[[TEvent], Union[Awaitable[Any], Any]]):
+    def __call__(self, filter: TFilter[TEvent]):
         self.set_filter(filter)
         return self
 
@@ -648,10 +663,11 @@ def trigger_three(event: FriendMessage):
 
         事件捕获成功后，触发器会进入已完成状态。
 
-        `event: TEvent` 事件。
+        Args
+            event (`TEvent`): 事件。
 
         Returns:
-            bool: 捕获成功与否。
+            `bool`: 捕获成功与否。
         &#34;&#34;&#34;
         if self._future is None or self.done():
             return False
@@ -680,7 +696,8 @@ def trigger_three(event: FriendMessage):
 
         回调函数接受唯一参数：触发器本身。
 
-        `callback: Callable[[&#39;Trigger&#39;], Any]` 回调函数。
+        Args:
+            callback (`Callable[[&#39;Trigger&#39;], Any]`): 回调函数。
         &#34;&#34;&#34;
         if self._future:
             self._future.add_done_callback(lambda _: callback(self))
@@ -691,6 +708,9 @@ def trigger_three(event: FriendMessage):
         此方法将丢弃当前结果，并将触发器设置为未完成状态。
 
         注意，此方法必须被异步函数调用或间接调用。
+
+        Returns:
+            `Trigger[TEvent]`: 触发器本身。
         &#34;&#34;&#34;
         if self._future:
             self._future.cancel()
@@ -701,7 +721,12 @@ def trigger_three(event: FriendMessage):
     async def wait(self, timeout: float = 0.):
         &#34;&#34;&#34;等待事件触发，返回事件触发器的结果。
 
-        `timeout: float = 0.` 超时时间，单位为秒。如果等待超时，将返回 None。
+        Args:
+            timeout (`float`): 超时时间，单位为秒。
+
+        Returns:
+            `Any`: 触发器的结果。
+            `None`: 触发器超时。
         &#34;&#34;&#34;
         if self._waited:
             raise RuntimeError(&#39;触发器已被等待。&#39;)
@@ -722,6 +747,12 @@ def trigger_three(event: FriendMessage):
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>typing.Generic</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="mirai_extensions.trigger.message.FriendMessageTrigger" href="message.html#mirai_extensions.trigger.message.FriendMessageTrigger">FriendMessageTrigger</a></li>
+<li><a title="mirai_extensions.trigger.message.GroupMessageTrigger" href="message.html#mirai_extensions.trigger.message.GroupMessageTrigger">GroupMessageTrigger</a></li>
+<li><a title="mirai_extensions.trigger.message.TempMessageTrigger" href="message.html#mirai_extensions.trigger.message.TempMessageTrigger">TempMessageTrigger</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -746,7 +777,8 @@ def trigger_three(event: FriendMessage):
 <dd>
 <div class="desc"><p>添加触发器完成后的回调。</p>
 <p>回调函数接受唯一参数：触发器本身。</p>
-<p><code>callback: Callable[['Trigger'], Any]</code> 回调函数。</p></div>
+<h2 id="args">Args</h2>
+<p>callback (<code>Callable[['Trigger'], Any]</code>): 回调函数。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -756,7 +788,8 @@ def trigger_three(event: FriendMessage):
 
     回调函数接受唯一参数：触发器本身。
 
-    `callback: Callable[[&#39;Trigger&#39;], Any]` 回调函数。
+    Args:
+        callback (`Callable[[&#39;Trigger&#39;], Any]`): 回调函数。
     &#34;&#34;&#34;
     if self._future:
         self._future.add_done_callback(lambda _: callback(self))</code></pre>
@@ -770,12 +803,10 @@ def trigger_three(event: FriendMessage):
 <p>事件会传递给过滤器，过滤器返回一个非 None 的值，表示事件被捕获，
 事件触发器将把过滤器的返回值作为结果。</p>
 <p>事件捕获成功后，触发器会进入已完成状态。</p>
-<p><code>event: TEvent</code> 事件。</p>
+<p>Args
+event (<code>TEvent</code>): 事件。</p>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><code>bool</code></dt>
-<dd>捕获成功与否。</dd>
-</dl></div>
+<p><code>bool</code>: 捕获成功与否。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -788,10 +819,11 @@ def trigger_three(event: FriendMessage):
 
     事件捕获成功后，触发器会进入已完成状态。
 
-    `event: TEvent` 事件。
+    Args
+        event (`TEvent`): 事件。
 
     Returns:
-        bool: 捕获成功与否。
+        `bool`: 捕获成功与否。
     &#34;&#34;&#34;
     if self._future is None or self.done():
         return False
@@ -832,7 +864,9 @@ def trigger_three(event: FriendMessage):
 <dd>
 <div class="desc"><p>重置事件触发器。</p>
 <p>此方法将丢弃当前结果，并将触发器设置为未完成状态。</p>
-<p>注意，此方法必须被异步函数调用或间接调用。</p></div>
+<p>注意，此方法必须被异步函数调用或间接调用。</p>
+<h2 id="returns">Returns</h2>
+<p><code><a title="mirai_extensions.trigger.Trigger" href="#mirai_extensions.trigger.Trigger">Trigger</a>[TEvent]</code>: 触发器本身。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -843,6 +877,9 @@ def trigger_three(event: FriendMessage):
     此方法将丢弃当前结果，并将触发器设置为未完成状态。
 
     注意，此方法必须被异步函数调用或间接调用。
+
+    Returns:
+        `Trigger[TEvent]`: 触发器本身。
     &#34;&#34;&#34;
     if self._future:
         self._future.cancel()
@@ -856,17 +893,17 @@ def trigger_three(event: FriendMessage):
 </code></dt>
 <dd>
 <div class="desc"><p>设置过滤器。</p>
-<p><code>filter: Callable[[TEvent], Union[Awaitable[Any], Any]]</code> 过滤器。</p></div>
+<h2 id="args">Args</h2>
+<p>filter (<code>TFilter[TEvent]</code>): 过滤器。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def set_filter(
-    self, filter: Callable[[TEvent], Union[Awaitable[Any], Any]]
-):
+<pre><code class="python">def set_filter(self, filter: TFilter[TEvent]):
     &#34;&#34;&#34;设置过滤器。
 
-    `filter: Callable[[TEvent], Union[Awaitable[Any], Any]]` 过滤器。
+    Args:
+        filter (`TFilter[TEvent]`): 过滤器。
     &#34;&#34;&#34;
     self.filter = filter
     return filter</code></pre>
@@ -877,7 +914,11 @@ def trigger_three(event: FriendMessage):
 </code></dt>
 <dd>
 <div class="desc"><p>等待事件触发，返回事件触发器的结果。</p>
-<p><code>timeout: float = 0.</code> 超时时间，单位为秒。如果等待超时，将返回 None。</p></div>
+<h2 id="args">Args</h2>
+<p>timeout (<code>float</code>): 超时时间，单位为秒。</p>
+<h2 id="returns">Returns</h2>
+<p><code>Any</code>: 触发器的结果。
+<code>None</code>: 触发器超时。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -885,7 +926,12 @@ def trigger_three(event: FriendMessage):
 <pre><code class="python">async def wait(self, timeout: float = 0.):
     &#34;&#34;&#34;等待事件触发，返回事件触发器的结果。
 
-    `timeout: float = 0.` 超时时间，单位为秒。如果等待超时，将返回 None。
+    Args:
+        timeout (`float`): 超时时间，单位为秒。
+
+    Returns:
+        `Any`: 触发器的结果。
+        `None`: 触发器超时。
     &#34;&#34;&#34;
     if self._waited:
         raise RuntimeError(&#39;触发器已被等待。&#39;)
@@ -919,8 +965,8 @@ def trigger_three(event: FriendMessage):
 <ul>
 <li><code><a title="mirai_extensions.trigger.handler" href="handler.html">mirai_extensions.trigger.handler</a></code></li>
 <li><code><a title="mirai_extensions.trigger.interrupt" href="interrupt.html">mirai_extensions.trigger.interrupt</a></code></li>
+<li><code><a title="mirai_extensions.trigger.message" href="message.html">mirai_extensions.trigger.message</a></code></li>
 <li><code><a title="mirai_extensions.trigger.trigger" href="trigger.html">mirai_extensions.trigger.trigger</a></code></li>
-<li><code><a title="mirai_extensions.trigger.utils" href="utils.html">mirai_extensions.trigger.utils</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

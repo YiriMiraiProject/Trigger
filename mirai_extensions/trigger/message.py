@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from typing import NewType, Optional, Union, cast
 
 from mirai.models.entities import Friend, Group, GroupMember
@@ -9,6 +10,8 @@ from mirai.models.events import (
 from mirai.models.message import MessageChain, Quote
 from mirai.utils import async_
 from mirai_extensions.trigger.trigger import TFilter, Trigger
+
+logger = logging.getLogger(__name__.replace('mirai_extensions', 'mirai'))
 
 
 class FriendMessageTrigger(Trigger[FriendMessage]):
@@ -39,6 +42,11 @@ class FriendMessageTrigger(Trigger[FriendMessage]):
             friend = friend.id
         self.friend = friend
 
+        if quote:
+            logger.warning(
+                "FriendMessageTrigger 的 quote 参数目前由于不明原因，有时候不能正常使用，请注意。"
+            )
+
         if isinstance(quote, MessageEvent):
             quote = quote.message_chain
         if isinstance(quote, MessageChain):
@@ -52,7 +60,9 @@ class FriendMessageTrigger(Trigger[FriendMessage]):
             return
         if self.quote:
             quotes = event.message_chain[Quote, 1]
-            if not quotes or Quote[0].id != self.quote:
+            print(repr(quotes))
+            print(self.quote)
+            if not quotes or quotes[0].id != self.quote:
                 return
         if self.custom_filter:
             return await async_(self.custom_filter(event))
@@ -121,7 +131,7 @@ class GroupMessageTrigger(Trigger[GroupMessage]):
             return
         if self.quote:
             quotes = event.message_chain[Quote, 1]
-            if not quotes or Quote[0].id != self.quote:
+            if not quotes or quotes[0].id != self.quote:
                 return
         if self.custom_filter:
             return await async_(self.custom_filter(event))
@@ -186,7 +196,7 @@ class TempMessageTrigger(Trigger[TempMessage]):
             return
         if self.quote:
             quotes = event.message_chain[Quote, 1]
-            if not quotes or Quote[0].id != self.quote:
+            if not quotes or quotes[0].id != self.quote:
                 return
         if self.custom_filter:
             return await async_(self.custom_filter(event))

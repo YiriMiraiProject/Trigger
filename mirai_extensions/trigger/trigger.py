@@ -3,19 +3,15 @@
 此模块提供事件触发器相关。
 """
 import asyncio
-from typing import (
-    Any, Awaitable, Callable, Generic, Optional, Type, TypeVar, Union
-)
+from typing import Any, Callable, Generic, Optional, Type, TypeVar
 
-from mirai.utils import async_
+from mirai_extensions.trigger.filter import Filter
 
 TEvent = TypeVar('TEvent')
 
-TFilter = Callable[[TEvent], Union[Awaitable[Any], Any]]
-
 
 class Trigger(Generic[TEvent]):
-    """事件触发器，提供对事件进行选择性过滤和解析的功能。
+    """事件触发器，提供等待符合特定条件的事件的功能。
 
     事件触发器类似于 asyncio.Future，有已完成和未完成两种状态。和 Future 一样，Trigger 也是低层级 API。
     大多数情况下，你不需要用到 Trigger 的实现，而是通过中断控制器、事件接收控制器来使用 Trigger。
@@ -23,41 +19,7 @@ class Trigger(Generic[TEvent]):
     触发器创建后，默认为未完成状态。通过 catch 方法尝试捕获事件，捕获成功后将进入已完成状态。
     使用 wait 方法等待一个触发器，直到触发器完成。
 
-    触发器内部的逻辑由过滤器实现。过滤器是一个函数，接受一个事件，如果事件可以被捕获，返回解析事件的结果，
-    否则返回 None。
-
-    过滤器可以在创建触发器时设置，也可以通过 set_filter 方法，或者通过装饰器的方式设置。
-
-    ```python
-    # 方式一
-    def filter_one(event: FriendMessage):
-        if event.sender.id == 12345678:
-            return event.sender.nickname or ''
-    trigger_one = Trigger(FriendMessage, filter=filter_one)
-
-    # 方式二
-    trigger_two = Trigger(FriendMessage)
-    @trigger_two.set_filter
-    def filter_two(event: FriendMessage):
-        if event.sender.id == 12345678:
-            return event.sender.nickname or ''
-    # 或者
-    trigger_two.set_filter(filter_two)
-
-    # 方式三
-    @Trigger(FriendMessage)
-    def trigger_three(event: FriendMessage):
-        if event.sender.id == 12345678:
-            return event.sender.nickname or ''
-    ```
-
-    三种方式是等价的。
-
-    当使用类装饰器的方式创建触发器时，被装饰函数的名称将失效。比如上例中，`trigger_three` 将不再是函数，
-    而是成为 Trigger 实例。
-
-    上例中的过滤器将检测好友消息的发送对象，只有来自 12345678 的消息会被捕获。其他情况下，过滤器返回默认值 None，
-    不会被捕获。
+    触发器内部的逻辑由过滤器（`mirai_extensions.trigger.filter.Filter`）实现。在创建触发器时，指定使用的过滤器。
 
     事件被捕获后，触发器将进入已完成状态，同时触发器的结果会被设置为过滤器的返回值，在上例中就是好友的昵称。
 
@@ -66,35 +28,35 @@ class Trigger(Generic[TEvent]):
     使用 wait 方法等待触发器完成，并获得触发器的结果。
 
     ```python
-    result = await trigger_one.wait()
+    @Filter(FriendMessage)
+    def filter(event: FriendMessage):
+        if event.sender.id == 12345678:
+            return event.sender.nickname or ''
+
+    trigger = Trigger(filter)
+    result = await trigger.wait()
     ```
 
     `wait` 方法有一个可选的 `timeout` 参数，表示等待的限时，如果超时则返回 None。
 
     使用 `catch` 方法尝试捕获事件。事件捕获成功后，触发器会进入已完成状态。
     """
-    event_name: Type[TEvent]
-    """监听的事件类型。"""
-    filter: Optional[TFilter[TEvent]]
+    filter: Filter[TEvent]
     """过滤器。"""
     priority: int
     """优先级，小者优先。"""
     def __init__(
         self,
-        event_name: Type[TEvent],
+        filter: Filter[TEvent],
         priority: int = 0,
-        filter: Optional[TFilter[TEvent]] = None
     ):
         """
         Args:
-            event_name (`Type[TEvent]`): 事件类型。
+            filter (`Filter[TEvent]`): 过滤器。
             priority (`int`): 优先级，小者优先。
-            filter (`Optional[TFilter[TEvent]]`): 过滤器。
         """
-        self.event_name = event_name
         self.priority = priority
-        if filter:
-            self.set_filter(filter)
+        self.filter = filter
         self._future: Optional[asyncio.Future] = None
         self._waited: bool = False
 
@@ -102,20 +64,12 @@ class Trigger(Generic[TEvent]):
         if self._future:
             self._future.cancel()
 
-    def set_filter(self, filter: TFilter[TEvent]):
-        """设置过滤器。
+    @property
+    def event_name(self) -> Type[TEvent]:
+        """事件类型。"""
+        return self.filter.event_name
 
-        Args:
-            filter (`TFilter[TEvent]`): 过滤器。
-        """
-        self.filter = filter
-        return filter
-
-    def __call__(self, filter: TFilter[TEvent]):
-        self.set_filter(filter)
-        return self
-
-    async def catch(self, event: TEvent) -> bool:
+    def catch(self, event: TEvent) -> bool:
         """尝试捕获一个事件。
 
         事件会传递给过滤器，过滤器返回一个非 None 的值，表示事件被捕获，
@@ -133,7 +87,7 @@ class Trigger(Generic[TEvent]):
             return False
         if self.filter is not None:
             try:
-                result = await async_(self.filter(event))
+                result = self.filter.catch(event)
                 if result is not None and not self._future.done():
                     self._future.set_result(result)
                     return True

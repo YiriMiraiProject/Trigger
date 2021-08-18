@@ -6,14 +6,15 @@
 __version__ = '0.2.0'
 __author__ = '忘忧北萱草'
 
+from mirai_extensions.trigger.filter import Filter
 from mirai_extensions.trigger.handler import HandlerControl
 from mirai_extensions.trigger.interrupt import InterruptControl
 from mirai_extensions.trigger.message import (
-    FriendMessageTrigger, GroupMessageTrigger, TempMessageTrigger
+    FriendMessageFilter, GroupMessageFilter, TempMessageFilter
 )
 from mirai_extensions.trigger.trigger import Trigger
 
 __all__ = [
-    'Trigger', 'InterruptControl', 'HandlerControl', 'FriendMessageTrigger',
-    'GroupMessageTrigger', 'TempMessageTrigger'
+    'Filter', 'Trigger', 'InterruptControl', 'HandlerControl',
+    'FriendMessageFilter', 'GroupMessageFilter', 'TempMessageFilter'
 ]

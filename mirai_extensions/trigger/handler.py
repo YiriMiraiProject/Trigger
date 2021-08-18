@@ -1,109 +1,108 @@
 # -*- coding: utf-8 -*-
 """
-本模块提供触发器总线相关。
+本模块提供过滤器总线相关。
 """
 import asyncio
 import inspect
 import logging
-from typing import Any, Awaitable, Callable, Dict, List
+from typing import Any, Awaitable, Callable, Dict, List, Tuple
 
 from mirai.bus import AbstractEventBus
-from mirai.utils import PriorityDict, async_
-from mirai_extensions.trigger.trigger import Trigger
+from mirai.utils import PriorityDict
+from mirai_extensions.trigger.filter import Filter
 
 logger = logging.getLogger(__name__.replace('mirai_extensions', 'mirai'))
 
+THandler = Callable[[Any, Any], Any]
+
 
 class HandlerControl(AbstractEventBus):
-    """事件接收控制器，通过 Trigger 实现事件的过滤和解析。
+    """事件接收控制器，通过 Filter 实现事件的过滤和解析。
 
-    注册 trigger 后，可以通过 `hdc.on(trigger)` 装饰器注册处理器。
+    创建过滤器 `filter_` 后，可以通过 `hdc.on(filter_)` 装饰器注册处理器。
 
     处理器是一个函数，接受两个参数 `event` 和 `payload`。
-    `event` 是接收到的原始事件，`payload` 是 trigger 的过滤器解析的结果。
+    `event` 是接收到的原始事件，`payload` 是过滤器解析的结果。
 
     ```python
     hdc = HandlerControl(bot)
 
-    @Trigger(FriendMessage)
-    async def trigger(event: FriendMessage):
+    @Filter(FriendMessage)
+    async def filter_(event: FriendMessage):
         msg = str(event.message_chain)
         if msg.startswith('我是'):
             return msg[2:]
 
-    @hdc.on(trigger)
+    @hdc.on(filter_)
     async def handler(event: FriendMessage, payload: str):
         ...
     ```
     """
     bus: AbstractEventBus
-    _handlers: Dict[Trigger, PriorityDict[Callable]]
 
-    def __init__(self, bus: AbstractEventBus):
+    def __init__(self, bus: AbstractEventBus, priority: int = 0):
         """
         Args:
             bus (`AbstractEventBus`): 事件总线。
+            priority (`int`): 事件接收控制器工作的优先级，小者优先。
         """
         self.bus = bus
-        self._handlers = {}
+        self.priority = priority
+        self._handlers: Dict[Any, PriorityDict[Tuple[Filter, THandler]]] = {}
 
-    def subscribe(self, event: Trigger, func: Callable, priority: int = 0):
-        """注册一个触发器的处理器。
+    def _new_handler(self, event_name):
+        @self.bus.on(event_name, priority=self.priority)
+        async def _(event):
+            results = []
+            for filters in self._handlers[event_name]:
+                for filter_, func in list(filters):
+                    payload = filter_.catch(event)
+                    if payload is not None:
+                        results.append(func(event, payload))
+            return asyncio.gather(*filter(inspect.isawaitable, results))
+
+    def subscribe(self, event: Filter, func: THandler, priority: int = 0):
+        """注册一个过滤器的处理器。
 
         Args:
-            event (`Trigger`): 触发器。
+            event (`Filter`): 过滤器。
             func (`Callable`): 处理器。
             priority (`int`): 处理器的优先级，小者优先。
         """
-        trigger = event
-        del event
-        if trigger not in self._handlers:
-            self._handlers[trigger] = PriorityDict()
+        filter_ = event
+        event_name = filter_.event_name
+        if event_name not in self._handlers:
+            self._handlers[event_name] = PriorityDict()
+            self._new_handler(event_name)
+        self._handlers[event_name].add(priority, (filter_, func))
 
-            @self.bus.on(trigger.event_name, priority=trigger.priority)
-            async def _(event):
-                trigger.reset()
-                if await trigger.catch(event):
-                    payload = await trigger.wait()
-                    results = []
-                    for listeners in self._handlers[trigger]:
-                        results += [
-                            await async_(f(event, payload))
-                            for f in list(listeners)
-                        ]
-                    return asyncio.gather(
-                        *filter(inspect.isawaitable, results)
-                    )
-
-        self._handlers[trigger].add(priority, func)
-
-    def unsubscribe(self, event: Trigger, func: Callable):
-        """取消一个触发器的处理器。
+    def unsubscribe(self, event: Filter, func: THandler):
+        """取消一个过滤器的处理器。
 
         Args:
-            event (`Trigger`): 触发器。
+            event (`Filter`): 过滤器。
             func (`Callable`): 处理器。
         """
         try:
-            self._handlers[event].remove(func)
+            self._handlers[event.event_name].remove((event, func))
         except KeyError:
-            logger.warning(f'试图移除触发器 `{event}` 的一个不存在的处理器 `{func}`。')
+            logger.warning(f'试图移除过滤器 `{event}` 的一个不存在的处理器 `{func}`。')
 
-    def on(self, event: Trigger, priority: int = 0):
-        """以装饰器的形式注册一个触发器的处理器。
+    def on(self, event: Filter, priority: int = 0):
+        """以装饰器的形式注册一个过滤器的处理器。
 
         例如：
         ```python
-        @hdc.on(trigger)
+        @hdc.on(filter)
         async def handler(event, payload):
             ...
         ```
 
         Args:
-            event (`Trigger`): 触发器。
+            event (`Filter`): 过滤器。
             priority (`int`): 处理器的优先级，小者优先。
         """
-        def decorator(func: Callable) -> Callable:
+        def decorator(func: THandler) -> THandler:
             self.subscribe(event, func, priority)
             return func
 

@@ -32,19 +32,15 @@
 此模块提供事件触发器相关。
 &#34;&#34;&#34;
 import asyncio
-from typing import (
-    Any, Awaitable, Callable, Generic, Optional, Type, TypeVar, Union
-)
+from typing import Any, Callable, Generic, Optional, Type, TypeVar
 
-from mirai.utils import async_
+from mirai_extensions.trigger.filter import Filter
 
 TEvent = TypeVar(&#39;TEvent&#39;)
 
-TFilter = Callable[[TEvent], Union[Awaitable[Any], Any]]
-
 
 class Trigger(Generic[TEvent]):
-    &#34;&#34;&#34;事件触发器，提供对事件进行选择性过滤和解析的功能。
+    &#34;&#34;&#34;事件触发器，提供等待符合特定条件的事件的功能。
 
     事件触发器类似于 asyncio.Future，有已完成和未完成两种状态。和 Future 一样，Trigger 也是低层级 API。
     大多数情况下，你不需要用到 Trigger 的实现，而是通过中断控制器、事件接收控制器来使用 Trigger。
@@ -52,41 +48,7 @@ class Trigger(Generic[TEvent]):
     触发器创建后，默认为未完成状态。通过 catch 方法尝试捕获事件，捕获成功后将进入已完成状态。
     使用 wait 方法等待一个触发器，直到触发器完成。
 
-    触发器内部的逻辑由过滤器实现。过滤器是一个函数，接受一个事件，如果事件可以被捕获，返回解析事件的结果，
-    否则返回 None。
-
-    过滤器可以在创建触发器时设置，也可以通过 set_filter 方法，或者通过装饰器的方式设置。
-
-    ```python
-    # 方式一
-    def filter_one(event: FriendMessage):
-        if event.sender.id == 12345678:
-            return event.sender.nickname or &#39;&#39;
-    trigger_one = Trigger(FriendMessage, filter=filter_one)
-
-    # 方式二
-    trigger_two = Trigger(FriendMessage)
-    @trigger_two.set_filter
-    def filter_two(event: FriendMessage):
-        if event.sender.id == 12345678:
-            return event.sender.nickname or &#39;&#39;
-    # 或者
-    trigger_two.set_filter(filter_two)
-
-    # 方式三
-    @Trigger(FriendMessage)
-    def trigger_three(event: FriendMessage):
-        if event.sender.id == 12345678:
-            return event.sender.nickname or &#39;&#39;
-    ```
-
-    三种方式是等价的。
-
-    当使用类装饰器的方式创建触发器时，被装饰函数的名称将失效。比如上例中，`trigger_three` 将不再是函数，
-    而是成为 Trigger 实例。
-
-    上例中的过滤器将检测好友消息的发送对象，只有来自 12345678 的消息会被捕获。其他情况下，过滤器返回默认值 None，
-    不会被捕获。
+    触发器内部的逻辑由过滤器（`mirai_extensions.trigger.filter.Filter`）实现。在创建触发器时，指定使用的过滤器。
 
     事件被捕获后，触发器将进入已完成状态，同时触发器的结果会被设置为过滤器的返回值，在上例中就是好友的昵称。
 
@@ -95,35 +57,35 @@ class Trigger(Generic[TEvent]):
     使用 wait 方法等待触发器完成，并获得触发器的结果。
 
     ```python
-    result = await trigger_one.wait()
+    @Filter(FriendMessage)
+    def filter(event: FriendMessage):
+        if event.sender.id == 12345678:
+            return event.sender.nickname or &#39;&#39;
+
+    trigger = Trigger(filter)
+    result = await trigger.wait()
     ```
 
     `wait` 方法有一个可选的 `timeout` 参数，表示等待的限时，如果超时则返回 None。
 
     使用 `catch` 方法尝试捕获事件。事件捕获成功后，触发器会进入已完成状态。
     &#34;&#34;&#34;
-    event_name: Type[TEvent]
-    &#34;&#34;&#34;监听的事件类型。&#34;&#34;&#34;
-    filter: Optional[TFilter[TEvent]]
+    filter: Filter[TEvent]
     &#34;&#34;&#34;过滤器。&#34;&#34;&#34;
     priority: int
     &#34;&#34;&#34;优先级，小者优先。&#34;&#34;&#34;
     def __init__(
         self,
-        event_name: Type[TEvent],
+        filter: Filter[TEvent],
         priority: int = 0,
-        filter: Optional[TFilter[TEvent]] = None
     ):
         &#34;&#34;&#34;
         Args:
-            event_name (`Type[TEvent]`): 事件类型。
+            filter (`Filter[TEvent]`): 过滤器。
             priority (`int`): 优先级，小者优先。
-            filter (`Optional[TFilter[TEvent]]`): 过滤器。
         &#34;&#34;&#34;
-        self.event_name = event_name
         self.priority = priority
-        if filter:
-            self.set_filter(filter)
+        self.filter = filter
         self._future: Optional[asyncio.Future] = None
         self._waited: bool = False
 
@@ -131,20 +93,12 @@ class Trigger(Generic[TEvent]):
         if self._future:
             self._future.cancel()
 
-    def set_filter(self, filter: TFilter[TEvent]):
-        &#34;&#34;&#34;设置过滤器。
+    @property
+    def event_name(self) -&gt; Type[TEvent]:
+        &#34;&#34;&#34;事件类型。&#34;&#34;&#34;
+        return self.filter.event_name
 
-        Args:
-            filter (`TFilter[TEvent]`): 过滤器。
-        &#34;&#34;&#34;
-        self.filter = filter
-        return filter
-
-    def __call__(self, filter: TFilter[TEvent]):
-        self.set_filter(filter)
-        return self
-
-    async def catch(self, event: TEvent) -&gt; bool:
+    def catch(self, event: TEvent) -&gt; bool:
         &#34;&#34;&#34;尝试捕获一个事件。
 
         事件会传递给过滤器，过滤器返回一个非 None 的值，表示事件被捕获，
@@ -162,7 +116,7 @@ class Trigger(Generic[TEvent]):
             return False
         if self.filter is not None:
             try:
-                result = await async_(self.filter(event))
+                result = self.filter.catch(event)
                 if result is not None and not self._future.done():
                     self._future.set_result(result)
                     return True
@@ -245,60 +199,37 @@ class Trigger(Generic[TEvent]):
 <dl>
 <dt id="mirai_extensions.trigger.trigger.Trigger"><code class="flex name class">
 <span>class <span class="ident">Trigger</span></span>
-<span>(</span><span>event_name: Type[~TEvent], priority: int = 0, filter: Optional[Callable[[~TEvent], Union[Awaitable[Any], Any]]] = None)</span>
+<span>(</span><span>filter: <a title="mirai_extensions.trigger.filter.Filter" href="filter.html#mirai_extensions.trigger.filter.Filter">Filter</a>[~TEvent], priority: int = 0)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>事件触发器，提供对事件进行选择性过滤和解析的功能。</p>
+<div class="desc"><p>事件触发器，提供等待符合特定条件的事件的功能。</p>
 <p>事件触发器类似于 asyncio.Future，有已完成和未完成两种状态。和 Future 一样，Trigger 也是低层级 API。
 大多数情况下，你不需要用到 Trigger 的实现，而是通过中断控制器、事件接收控制器来使用 Trigger。</p>
 <p>触发器创建后，默认为未完成状态。通过 catch 方法尝试捕获事件，捕获成功后将进入已完成状态。
 使用 wait 方法等待一个触发器，直到触发器完成。</p>
-<p>触发器内部的逻辑由过滤器实现。过滤器是一个函数，接受一个事件，如果事件可以被捕获，返回解析事件的结果，
-否则返回 None。</p>
-<p>过滤器可以在创建触发器时设置，也可以通过 set_filter 方法，或者通过装饰器的方式设置。</p>
-<pre><code class="language-python"># 方式一
-def filter_one(event: FriendMessage):
-    if event.sender.id == 12345678:
-        return event.sender.nickname or ''
-trigger_one = Trigger(FriendMessage, filter=filter_one)
-
-# 方式二
-trigger_two = Trigger(FriendMessage)
-@trigger_two.set_filter
-def filter_two(event: FriendMessage):
-    if event.sender.id == 12345678:
-        return event.sender.nickname or ''
-# 或者
-trigger_two.set_filter(filter_two)
-
-# 方式三
-@Trigger(FriendMessage)
-def trigger_three(event: FriendMessage):
-    if event.sender.id == 12345678:
-        return event.sender.nickname or ''
-</code></pre>
-<p>三种方式是等价的。</p>
-<p>当使用类装饰器的方式创建触发器时，被装饰函数的名称将失效。比如上例中，<code>trigger_three</code> 将不再是函数，
-而是成为 Trigger 实例。</p>
-<p>上例中的过滤器将检测好友消息的发送对象，只有来自 12345678 的消息会被捕获。其他情况下，过滤器返回默认值 None，
-不会被捕获。</p>
+<p>触发器内部的逻辑由过滤器（<code><a title="mirai_extensions.trigger.filter.Filter" href="filter.html#mirai_extensions.trigger.filter.Filter">Filter</a></code>）实现。在创建触发器时，指定使用的过滤器。</p>
 <p>事件被捕获后，触发器将进入已完成状态，同时触发器的结果会被设置为过滤器的返回值，在上例中就是好友的昵称。</p>
 <p>触发器的状态可以通过 done 方法来查询。</p>
 <p>使用 wait 方法等待触发器完成，并获得触发器的结果。</p>
-<pre><code class="language-python">result = await trigger_one.wait()
+<pre><code class="language-python">@Filter(FriendMessage)
+def filter(event: FriendMessage):
+    if event.sender.id == 12345678:
+        return event.sender.nickname or ''
+
+trigger = Trigger(filter)
+result = await trigger.wait()
 </code></pre>
 <p><code>wait</code> 方法有一个可选的 <code>timeout</code> 参数，表示等待的限时，如果超时则返回 None。</p>
 <p>使用 <code>catch</code> 方法尝试捕获事件。事件捕获成功后，触发器会进入已完成状态。</p>
 <h2 id="args">Args</h2>
-<p>event_name (<code>Type[TEvent]</code>): 事件类型。
-priority (<code>int</code>): 优先级，小者优先。
-filter (<code>Optional[TFilter[TEvent]]</code>): 过滤器。</p></div>
+<p>filter (<code>Filter[TEvent]</code>): 过滤器。
+priority (<code>int</code>): 优先级，小者优先。</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Trigger(Generic[TEvent]):
-    &#34;&#34;&#34;事件触发器，提供对事件进行选择性过滤和解析的功能。
+    &#34;&#34;&#34;事件触发器，提供等待符合特定条件的事件的功能。
 
     事件触发器类似于 asyncio.Future，有已完成和未完成两种状态。和 Future 一样，Trigger 也是低层级 API。
     大多数情况下，你不需要用到 Trigger 的实现，而是通过中断控制器、事件接收控制器来使用 Trigger。
@@ -306,41 +237,7 @@ filter (<code>Optional[TFilter[TEvent]]</code>): 过滤器。</p></div>
     触发器创建后，默认为未完成状态。通过 catch 方法尝试捕获事件，捕获成功后将进入已完成状态。
     使用 wait 方法等待一个触发器，直到触发器完成。
 
-    触发器内部的逻辑由过滤器实现。过滤器是一个函数，接受一个事件，如果事件可以被捕获，返回解析事件的结果，
-    否则返回 None。
-
-    过滤器可以在创建触发器时设置，也可以通过 set_filter 方法，或者通过装饰器的方式设置。
-
-    ```python
-    # 方式一
-    def filter_one(event: FriendMessage):
-        if event.sender.id == 12345678:
-            return event.sender.nickname or &#39;&#39;
-    trigger_one = Trigger(FriendMessage, filter=filter_one)
-
-    # 方式二
-    trigger_two = Trigger(FriendMessage)
-    @trigger_two.set_filter
-    def filter_two(event: FriendMessage):
-        if event.sender.id == 12345678:
-            return event.sender.nickname or &#39;&#39;
-    # 或者
-    trigger_two.set_filter(filter_two)
-
-    # 方式三
-    @Trigger(FriendMessage)
-    def trigger_three(event: FriendMessage):
-        if event.sender.id == 12345678:
-            return event.sender.nickname or &#39;&#39;
-    ```
-
-    三种方式是等价的。
-
-    当使用类装饰器的方式创建触发器时，被装饰函数的名称将失效。比如上例中，`trigger_three` 将不再是函数，
-    而是成为 Trigger 实例。
-
-    上例中的过滤器将检测好友消息的发送对象，只有来自 12345678 的消息会被捕获。其他情况下，过滤器返回默认值 None，
-    不会被捕获。
+    触发器内部的逻辑由过滤器（`mirai_extensions.trigger.filter.Filter`）实现。在创建触发器时，指定使用的过滤器。
 
     事件被捕获后，触发器将进入已完成状态，同时触发器的结果会被设置为过滤器的返回值，在上例中就是好友的昵称。
 
@@ -349,35 +246,35 @@ filter (<code>Optional[TFilter[TEvent]]</code>): 过滤器。</p></div>
     使用 wait 方法等待触发器完成，并获得触发器的结果。
 
     ```python
-    result = await trigger_one.wait()
+    @Filter(FriendMessage)
+    def filter(event: FriendMessage):
+        if event.sender.id == 12345678:
+            return event.sender.nickname or &#39;&#39;
+
+    trigger = Trigger(filter)
+    result = await trigger.wait()
     ```
 
     `wait` 方法有一个可选的 `timeout` 参数，表示等待的限时，如果超时则返回 None。
 
     使用 `catch` 方法尝试捕获事件。事件捕获成功后，触发器会进入已完成状态。
     &#34;&#34;&#34;
-    event_name: Type[TEvent]
-    &#34;&#34;&#34;监听的事件类型。&#34;&#34;&#34;
-    filter: Optional[TFilter[TEvent]]
+    filter: Filter[TEvent]
     &#34;&#34;&#34;过滤器。&#34;&#34;&#34;
     priority: int
     &#34;&#34;&#34;优先级，小者优先。&#34;&#34;&#34;
     def __init__(
         self,
-        event_name: Type[TEvent],
+        filter: Filter[TEvent],
         priority: int = 0,
-        filter: Optional[TFilter[TEvent]] = None
     ):
         &#34;&#34;&#34;
         Args:
-            event_name (`Type[TEvent]`): 事件类型。
+            filter (`Filter[TEvent]`): 过滤器。
             priority (`int`): 优先级，小者优先。
-            filter (`Optional[TFilter[TEvent]]`): 过滤器。
         &#34;&#34;&#34;
-        self.event_name = event_name
         self.priority = priority
-        if filter:
-            self.set_filter(filter)
+        self.filter = filter
         self._future: Optional[asyncio.Future] = None
         self._waited: bool = False
 
@@ -385,20 +282,12 @@ filter (<code>Optional[TFilter[TEvent]]</code>): 过滤器。</p></div>
         if self._future:
             self._future.cancel()
 
-    def set_filter(self, filter: TFilter[TEvent]):
-        &#34;&#34;&#34;设置过滤器。
+    @property
+    def event_name(self) -&gt; Type[TEvent]:
+        &#34;&#34;&#34;事件类型。&#34;&#34;&#34;
+        return self.filter.event_name
 
-        Args:
-            filter (`TFilter[TEvent]`): 过滤器。
-        &#34;&#34;&#34;
-        self.filter = filter
-        return filter
-
-    def __call__(self, filter: TFilter[TEvent]):
-        self.set_filter(filter)
-        return self
-
-    async def catch(self, event: TEvent) -&gt; bool:
+    def catch(self, event: TEvent) -&gt; bool:
         &#34;&#34;&#34;尝试捕获一个事件。
 
         事件会传递给过滤器，过滤器返回一个非 None 的值，表示事件被捕获，
@@ -416,7 +305,7 @@ filter (<code>Optional[TFilter[TEvent]]</code>): 过滤器。</p></div>
             return False
         if self.filter is not None:
             try:
-                result = await async_(self.filter(event))
+                result = self.filter.catch(event)
                 if result is not None and not self._future.done():
                     self._future.set_result(result)
                     return True
@@ -491,25 +380,31 @@ filter (<code>Optional[TFilter[TEvent]]</code>): 过滤器。</p></div>
 <ul class="hlist">
 <li>typing.Generic</li>
 </ul>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li><a title="mirai_extensions.trigger.message.FriendMessageTrigger" href="message.html#mirai_extensions.trigger.message.FriendMessageTrigger">FriendMessageTrigger</a></li>
-<li><a title="mirai_extensions.trigger.message.GroupMessageTrigger" href="message.html#mirai_extensions.trigger.message.GroupMessageTrigger">GroupMessageTrigger</a></li>
-<li><a title="mirai_extensions.trigger.message.TempMessageTrigger" href="message.html#mirai_extensions.trigger.message.TempMessageTrigger">TempMessageTrigger</a></li>
-</ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="mirai_extensions.trigger.trigger.Trigger.event_name"><code class="name">var <span class="ident">event_name</span> : Type[~TEvent]</code></dt>
-<dd>
-<div class="desc"><p>监听的事件类型。</p></div>
-</dd>
-<dt id="mirai_extensions.trigger.trigger.Trigger.filter"><code class="name">var <span class="ident">filter</span> : Optional[Callable[[~TEvent], Union[Awaitable[Any], Any]]]</code></dt>
+<dt id="mirai_extensions.trigger.trigger.Trigger.filter"><code class="name">var <span class="ident">filter</span> : <a title="mirai_extensions.trigger.filter.Filter" href="filter.html#mirai_extensions.trigger.filter.Filter">Filter</a>[~TEvent]</code></dt>
 <dd>
 <div class="desc"><p>过滤器。</p></div>
 </dd>
 <dt id="mirai_extensions.trigger.trigger.Trigger.priority"><code class="name">var <span class="ident">priority</span> : int</code></dt>
 <dd>
 <div class="desc"><p>优先级，小者优先。</p></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="mirai_extensions.trigger.trigger.Trigger.event_name"><code class="name">var <span class="ident">event_name</span> : Type[~TEvent]</code></dt>
+<dd>
+<div class="desc"><p>事件类型。</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def event_name(self) -&gt; Type[TEvent]:
+    &#34;&#34;&#34;事件类型。&#34;&#34;&#34;
+    return self.filter.event_name</code></pre>
+</details>
 </dd>
 </dl>
 <h3>Methods</h3>
@@ -539,7 +434,7 @@ filter (<code>Optional[TFilter[TEvent]]</code>): 过滤器。</p></div>
 </details>
 </dd>
 <dt id="mirai_extensions.trigger.trigger.Trigger.catch"><code class="name flex">
-<span>async def <span class="ident">catch</span></span>(<span>self, event: ~TEvent) ‑> bool</span>
+<span>def <span class="ident">catch</span></span>(<span>self, event: ~TEvent) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>尝试捕获一个事件。</p>
@@ -554,7 +449,7 @@ event (<code>TEvent</code>): 事件。</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">async def catch(self, event: TEvent) -&gt; bool:
+<pre><code class="python">def catch(self, event: TEvent) -&gt; bool:
     &#34;&#34;&#34;尝试捕获一个事件。
 
     事件会传递给过滤器，过滤器返回一个非 None 的值，表示事件被捕获，
@@ -572,7 +467,7 @@ event (<code>TEvent</code>): 事件。</p>
         return False
     if self.filter is not None:
         try:
-            result = await async_(self.filter(event))
+            result = self.filter.catch(event)
             if result is not None and not self._future.done():
                 self._future.set_result(result)
                 return True
@@ -629,27 +524,6 @@ event (<code>TEvent</code>): 事件。</p>
     self._future = asyncio.get_running_loop().create_future()
     self._waited = False
     return self</code></pre>
-</details>
-</dd>
-<dt id="mirai_extensions.trigger.trigger.Trigger.set_filter"><code class="name flex">
-<span>def <span class="ident">set_filter</span></span>(<span>self, filter: Callable[[~TEvent], Union[Awaitable[Any], Any]])</span>
-</code></dt>
-<dd>
-<div class="desc"><p>设置过滤器。</p>
-<h2 id="args">Args</h2>
-<p>filter (<code>TFilter[TEvent]</code>): 过滤器。</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def set_filter(self, filter: TFilter[TEvent]):
-    &#34;&#34;&#34;设置过滤器。
-
-    Args:
-        filter (`TFilter[TEvent]`): 过滤器。
-    &#34;&#34;&#34;
-    self.filter = filter
-    return filter</code></pre>
 </details>
 </dd>
 <dt id="mirai_extensions.trigger.trigger.Trigger.wait"><code class="name flex">
@@ -721,7 +595,6 @@ event (<code>TEvent</code>): 事件。</p>
 <li><code><a title="mirai_extensions.trigger.trigger.Trigger.filter" href="#mirai_extensions.trigger.trigger.Trigger.filter">filter</a></code></li>
 <li><code><a title="mirai_extensions.trigger.trigger.Trigger.priority" href="#mirai_extensions.trigger.trigger.Trigger.priority">priority</a></code></li>
 <li><code><a title="mirai_extensions.trigger.trigger.Trigger.reset" href="#mirai_extensions.trigger.trigger.Trigger.reset">reset</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.set_filter" href="#mirai_extensions.trigger.trigger.Trigger.set_filter">set_filter</a></code></li>
 <li><code><a title="mirai_extensions.trigger.trigger.Trigger.wait" href="#mirai_extensions.trigger.trigger.Trigger.wait">wait</a></code></li>
 </ul>
 </li>

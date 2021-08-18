@@ -29,7 +29,7 @@
 <pre><code class="python"># -*- coding: utf-8 -*-
 
 import logging
-from typing import NewType, Optional, Union, cast
+from typing import NewType, Optional, TypeVar, Union, cast
 
 from mirai.models.entities import Friend, Group, GroupMember
 from mirai.models.events import (
@@ -37,44 +37,17 @@ from mirai.models.events import (
 )
 from mirai.models.message import MessageChain, Quote
 from mirai.utils import async_
-from mirai_extensions.trigger.trigger import TFilter, Trigger
+from mirai_extensions.trigger.filter import BaseFilter, TFilter, Filter
 
 logger = logging.getLogger(__name__.replace(&#39;mirai_extensions&#39;, &#39;mirai&#39;))
 
+TEvent = TypeVar(&#39;TEvent&#39;)
 
-class FriendMessageTrigger(Trigger[FriendMessage]):
-    &#34;&#34;&#34;好友消息触发器。判断只接受指定好友发来的消息，或必需引用某条消息。&#34;&#34;&#34;
-    friend: Optional[int]
-    &#34;&#34;&#34;指定好友。&#34;&#34;&#34;
+
+class QuoteFilter(BaseFilter[MessageEvent]):
     quote: Optional[int]
-    &#34;&#34;&#34;指定引用某条消息。&#34;&#34;&#34;
-    custom_filter: Optional[TFilter[FriendMessage]]
-    &#34;&#34;&#34;过滤器。&#34;&#34;&#34;
-    def __init__(
-        self,
-        friend: Union[Friend, int, None] = None,
-        quote: Union[MessageEvent, MessageChain, int, None] = None,
-        priority: int = 0,
-        filter: Optional[TFilter[FriendMessage]] = None
-    ):
-        &#34;&#34;&#34;
-        Args:
-            friend (`Union[Friend, int, None]`): 指定好友。
-            quote (`Union[MessageEvent, MessageChain, int, None]`): 指定引用某条消息。
-            priority (`int`): 优先级，小者优先。
-            filter (`Optional[TFilter[FriendMessage]]`): 过滤器。
-        &#34;&#34;&#34;
-        super().__init__(FriendMessage, priority, filter)
 
-        if isinstance(friend, Friend):
-            friend = friend.id
-        self.friend = friend
-
-        if quote:
-            logger.warning(
-                &#34;FriendMessageTrigger 的 quote 参数目前由于不明原因，有时候不能正常使用，请注意。&#34;
-            )
-
+    def __init__(self, quote: Union[MessageEvent, MessageChain, int]):
         if isinstance(quote, MessageEvent):
             quote = quote.message_chain
         if isinstance(quote, MessageChain):
@@ -83,44 +56,103 @@ class FriendMessageTrigger(Trigger[FriendMessage]):
         else:
             self.quote = quote
 
-    async def _filter(self, event: FriendMessage):
-        if self.friend and event.sender.id != self.friend:
-            return
+    def _catch(self, event: MessageEvent) -&gt; Optional[MessageEvent]:
         if self.quote:
-            quotes = event.message_chain[Quote, 1]
-            print(repr(quotes))
-            print(self.quote)
-            if not quotes or quotes[0].id != self.quote:
-                return
-        if self.custom_filter:
-            return await async_(self.custom_filter(event))
+            quote = event.message_chain.get_first(Quote)
+            if not quote or quote.id != self.quote:
+                return None
+        return event
 
-    def set_filter(self, filter: TFilter[FriendMessage]):
-        self.custom_filter = filter
-        return super().set_filter(self._filter)
+
+class FriendFilter(BaseFilter[MessageEvent]):
+    friend: int
+
+    def __init__(self, friend: Union[Friend, int]):
+        if isinstance(friend, Friend):
+            friend = friend.id
+        self.friend = friend
+
+    def _catch(self, event: MessageEvent) -&gt; Optional[MessageEvent]:
+        if event.sender.id != self.friend:
+            return None
+        return event
+
+
+TMessageEventWithGroup = Union[GroupMessage, TempMessage]
+
+
+class GroupFilter(BaseFilter[TMessageEventWithGroup]):
+    def __init__(self, group: Union[Group, int]):
+        if isinstance(group, Group):
+            group = group.id
+        self.group = group
+
+    def _catch(
+        self, event: TMessageEventWithGroup
+    ) -&gt; Optional[TMessageEventWithGroup]:
+        if event.group.id != self.group:
+            return None
+        return event
 
 
 TNotSpecified = NewType(&#34;TNotSpecified&#34;, object)
 _not_specified = TNotSpecified(object())
 
 
-class GroupMessageTrigger(Trigger[GroupMessage]):
+class GroupMemberFilter(BaseFilter[TMessageEventWithGroup]):
+    def __init__(
+        self,
+        group_member: Union[GroupMember, int],
+        group: Union[Group, int, TNotSpecified, None] = _not_specified,
+    ):
+        if isinstance(group_member, GroupMember):
+            if group is _not_specified:
+                group = group_member.group.id
+            group_member = group_member.id
+
+        mixin = [FriendFilter(group_member)]
+        if group and group is not _not_specified:
+            mixin.append(GroupFilter(cast(Union[Group, int], group)))
+        super().__init__(mixin)
+
+
+class FriendMessageFilter(Filter[FriendMessage]):
+    &#34;&#34;&#34;好友消息触发器。判断只接受指定好友发来的消息，或必需引用某条消息。&#34;&#34;&#34;
+    def __init__(
+        self,
+        friend: Union[Friend, int, None] = None,
+        quote: Union[MessageEvent, MessageChain, int, None] = None,
+        func: Optional[TFilter[FriendMessage]] = None
+    ):
+        &#34;&#34;&#34;
+        Args:
+            friend (`Union[Friend, int, None]`): 指定好友。
+            quote (`Union[MessageEvent, MessageChain, int, None]`): 指定引用某条消息。
+            priority (`int`): 优先级，小者优先。
+            filter (`Optional[TFilter[FriendMessage]]`): 过滤器。
+        &#34;&#34;&#34;
+        mixin = []
+        if friend:
+            mixin.append(FriendFilter(friend))
+        if quote:
+            mixin.append(QuoteFilter(quote))
+
+        super().__init__(FriendMessage, mixin, func)
+
+        if quote:
+            logger.warning(
+                &#34;FriendMessageTrigger 的 quote 参数目前由于不明原因，有时候不能正常使用，请注意。&#34;
+            )
+
+
+class GroupMessageFilter(Filter[GroupMessage]):
     &#34;&#34;&#34;群消息触发器。判断只接受指定群的某个群成员发来的消息，或必需引用某条消息。&#34;&#34;&#34;
-    group: Optional[int]
-    &#34;&#34;&#34;指定群。&#34;&#34;&#34;
-    group_member: Optional[int]
-    &#34;&#34;&#34;指定群成员。&#34;&#34;&#34;
-    quote: Optional[int]
-    &#34;&#34;&#34;指定引用某条消息。&#34;&#34;&#34;
-    custom_filter: Optional[TFilter[GroupMessage]]
-    &#34;&#34;&#34;过滤器。&#34;&#34;&#34;
     def __init__(
         self,
         group: Union[Group, int, TNotSpecified, None] = _not_specified,
         group_member: Union[GroupMember, int, None] = None,
         quote: Union[MessageEvent, MessageChain, int, None] = None,
-        priority: int = 0,
-        filter: Optional[TFilter[GroupMessage]] = None
+        func: Optional[TFilter[GroupMessage]] = None
     ):
         &#34;&#34;&#34;
         Args:
@@ -130,62 +162,25 @@ class GroupMessageTrigger(Trigger[GroupMessage]):
             priority (`int`): 优先级，小者优先。
             filter (`Optional[TFilter[GroupMessage]]`): 过滤器。
         &#34;&#34;&#34;
-        super().__init__(GroupMessage, priority, filter)
+        mixin = []
+        if group_member:
+            mixin.append(GroupMemberFilter(group_member, group))
+        elif group and group is not _not_specified:
+            mixin.append(GroupFilter(cast(Union[Group, int], group)))
+        if quote:
+            mixin.append(QuoteFilter(quote))
 
-        if isinstance(group_member, GroupMember):
-            if group is _not_specified:
-                group = group_member.group.id
-            group_member = group_member.id
-        self.group_member = group_member
-
-        if isinstance(group, Group):
-            group = group.id
-        elif group is _not_specified:
-            group = None
-        self.group = cast(Optional[int], group)
-
-        if isinstance(quote, MessageEvent):
-            quote = quote.message_chain
-        if isinstance(quote, MessageChain):
-            quote = quote.message_id
-            self.quote = quote if quote &gt;= 0 else None
-        else:
-            self.quote = quote
-
-    async def _filter(self, event: GroupMessage):
-        if self.group and event.group.id != self.group:
-            return
-        if self.group_member and event.sender.id != self.group_member:
-            return
-        if self.quote:
-            quotes = event.message_chain[Quote, 1]
-            if not quotes or quotes[0].id != self.quote:
-                return
-        if self.custom_filter:
-            return await async_(self.custom_filter(event))
-
-    def set_filter(self, filter: TFilter[GroupMessage]):
-        self.custom_filter = filter
-        return super().set_filter(self._filter)
+        super().__init__(GroupMessage, mixin, func)
 
 
-class TempMessageTrigger(Trigger[TempMessage]):
+class TempMessageFilter(Filter[TempMessage]):
     &#34;&#34;&#34;临时消息触发器。判断只接受指定群的某个群成员发来的消息，或必需引用某条消息。&#34;&#34;&#34;
-    group: Optional[int]
-    &#34;&#34;&#34;指定群。&#34;&#34;&#34;
-    group_member: Optional[int]
-    &#34;&#34;&#34;指定群成员。&#34;&#34;&#34;
-    quote: Optional[int]
-    &#34;&#34;&#34;指定引用某条消息。&#34;&#34;&#34;
-    custom_filter: Optional[TFilter[TempMessage]]
-    &#34;&#34;&#34;过滤器。&#34;&#34;&#34;
     def __init__(
         self,
         group: Union[Group, int, TNotSpecified, None] = _not_specified,
         group_member: Union[GroupMember, int, None] = None,
         quote: Union[MessageEvent, MessageChain, int, None] = None,
-        priority: int = 0,
-        filter: Optional[TFilter[TempMessage]] = None
+        func: Optional[TFilter[TempMessage]] = None
     ):
         &#34;&#34;&#34;
         Args:
@@ -195,43 +190,15 @@ class TempMessageTrigger(Trigger[TempMessage]):
             priority (`int`): 优先级，小者优先。
             filter (`Optional[TFilter[TempMessage]]`): 过滤器。
         &#34;&#34;&#34;
-        super().__init__(TempMessage, priority, filter)
+        mixin = []
+        if group_member:
+            mixin.append(GroupMemberFilter(group_member, group))
+        elif group and group is not _not_specified:
+            mixin.append(GroupFilter(cast(Union[Group, int], group)))
+        if quote:
+            mixin.append(QuoteFilter(quote))
 
-        if isinstance(group_member, GroupMember):
-            if group is _not_specified:
-                group = group_member.group.id
-            group_member = group_member.id
-        self.group_member = group_member
-
-        if isinstance(group, Group):
-            group = group.id
-        elif group is _not_specified:
-            group = None
-        self.group = cast(Optional[int], group)
-
-        if isinstance(quote, MessageEvent):
-            quote = quote.message_chain
-        if isinstance(quote, MessageChain):
-            quote = quote.message_id
-            self.quote = quote if quote &gt;= 0 else None
-        else:
-            self.quote = quote
-
-    async def _filter(self, event: TempMessage):
-        if self.group and event.group.id != self.group:
-            return
-        if self.group_member and event.sender.id != self.group_member:
-            return
-        if self.quote:
-            quotes = event.message_chain[Quote, 1]
-            if not quotes or quotes[0].id != self.quote:
-                return
-        if self.custom_filter:
-            return await async_(self.custom_filter(event))
-
-    def set_filter(self, filter: TFilter[TempMessage]):
-        self.custom_filter = filter
-        return super().set_filter(self._filter)</code></pre>
+        super().__init__(GroupMessage, mixin, func)</code></pre>
 </details>
 </section>
 <section>
@@ -243,9 +210,59 @@ class TempMessageTrigger(Trigger[TempMessage]):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="mirai_extensions.trigger.message.FriendMessageTrigger"><code class="flex name class">
-<span>class <span class="ident">FriendMessageTrigger</span></span>
-<span>(</span><span>friend: Union[mirai.models.entities.Friend, int, None] = None, quote: Union[mirai.models.events.MessageEvent, mirai.models.message.MessageChain, int, None] = None, priority: int = 0, filter: Optional[Callable[[mirai.models.events.FriendMessage], Union[Awaitable[Any], Any]]] = None)</span>
+<dt id="mirai_extensions.trigger.message.FriendFilter"><code class="flex name class">
+<span>class <span class="ident">FriendFilter</span></span>
+<span>(</span><span>friend: Union[mirai.models.entities.Friend, int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>事件过滤器，提供对事件进行选择性过滤和解析的功能。</p>
+<p>事件过滤器提供了 mixin 机制，允许混入其他过滤器。</p>
+<p>过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p>
+<h2 id="args">Args</h2>
+<p>mixin (<code>Iterable['BaseFilter[TEvent]']</code>): 过滤器混入。
+过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FriendFilter(BaseFilter[MessageEvent]):
+    friend: int
+
+    def __init__(self, friend: Union[Friend, int]):
+        if isinstance(friend, Friend):
+            friend = friend.id
+        self.friend = friend
+
+    def _catch(self, event: MessageEvent) -&gt; Optional[MessageEvent]:
+        if event.sender.id != self.friend:
+            return None
+        return event</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="mirai_extensions.trigger.filter.BaseFilter" href="filter.html#mirai_extensions.trigger.filter.BaseFilter">BaseFilter</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="mirai_extensions.trigger.message.FriendFilter.friend"><code class="name">var <span class="ident">friend</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="mirai_extensions.trigger.filter.BaseFilter" href="filter.html#mirai_extensions.trigger.filter.BaseFilter">BaseFilter</a></b></code>:
+<ul class="hlist">
+<li><code><a title="mirai_extensions.trigger.filter.BaseFilter.catch" href="filter.html#mirai_extensions.trigger.filter.BaseFilter.catch">catch</a></code></li>
+<li><code><a title="mirai_extensions.trigger.filter.BaseFilter.mixin" href="filter.html#mirai_extensions.trigger.filter.BaseFilter.mixin">mixin</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="mirai_extensions.trigger.message.FriendMessageFilter"><code class="flex name class">
+<span>class <span class="ident">FriendMessageFilter</span></span>
+<span>(</span><span>friend: Union[mirai.models.entities.Friend, int, None] = None, quote: Union[mirai.models.events.MessageEvent, mirai.models.message.MessageChain, int, None] = None, func: Optional[Callable[[mirai.models.events.FriendMessage], Optional[Any]]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>好友消息触发器。判断只接受指定好友发来的消息，或必需引用某条消息。</p>
@@ -258,20 +275,13 @@ filter (<code>Optional[TFilter[FriendMessage]]</code>): 过滤器。</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class FriendMessageTrigger(Trigger[FriendMessage]):
+<pre><code class="python">class FriendMessageFilter(Filter[FriendMessage]):
     &#34;&#34;&#34;好友消息触发器。判断只接受指定好友发来的消息，或必需引用某条消息。&#34;&#34;&#34;
-    friend: Optional[int]
-    &#34;&#34;&#34;指定好友。&#34;&#34;&#34;
-    quote: Optional[int]
-    &#34;&#34;&#34;指定引用某条消息。&#34;&#34;&#34;
-    custom_filter: Optional[TFilter[FriendMessage]]
-    &#34;&#34;&#34;过滤器。&#34;&#34;&#34;
     def __init__(
         self,
         friend: Union[Friend, int, None] = None,
         quote: Union[MessageEvent, MessageChain, int, None] = None,
-        priority: int = 0,
-        filter: Optional[TFilter[FriendMessage]] = None
+        func: Optional[TFilter[FriendMessage]] = None
     ):
         &#34;&#34;&#34;
         Args:
@@ -280,81 +290,128 @@ filter (<code>Optional[TFilter[FriendMessage]]</code>): 过滤器。</p></div>
             priority (`int`): 优先级，小者优先。
             filter (`Optional[TFilter[FriendMessage]]`): 过滤器。
         &#34;&#34;&#34;
-        super().__init__(FriendMessage, priority, filter)
+        mixin = []
+        if friend:
+            mixin.append(FriendFilter(friend))
+        if quote:
+            mixin.append(QuoteFilter(quote))
 
-        if isinstance(friend, Friend):
-            friend = friend.id
-        self.friend = friend
+        super().__init__(FriendMessage, mixin, func)
 
         if quote:
             logger.warning(
                 &#34;FriendMessageTrigger 的 quote 参数目前由于不明原因，有时候不能正常使用，请注意。&#34;
-            )
-
-        if isinstance(quote, MessageEvent):
-            quote = quote.message_chain
-        if isinstance(quote, MessageChain):
-            quote = quote.message_id
-            self.quote = quote if quote &gt;= 0 else None
-        else:
-            self.quote = quote
-
-    async def _filter(self, event: FriendMessage):
-        if self.friend and event.sender.id != self.friend:
-            return
-        if self.quote:
-            quotes = event.message_chain[Quote, 1]
-            print(repr(quotes))
-            print(self.quote)
-            if not quotes or quotes[0].id != self.quote:
-                return
-        if self.custom_filter:
-            return await async_(self.custom_filter(event))
-
-    def set_filter(self, filter: TFilter[FriendMessage]):
-        self.custom_filter = filter
-        return super().set_filter(self._filter)</code></pre>
+            )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="mirai_extensions.trigger.trigger.Trigger" href="trigger.html#mirai_extensions.trigger.trigger.Trigger">Trigger</a></li>
+<li><a title="mirai_extensions.trigger.filter.Filter" href="filter.html#mirai_extensions.trigger.filter.Filter">Filter</a></li>
+<li><a title="mirai_extensions.trigger.filter.BaseFilter" href="filter.html#mirai_extensions.trigger.filter.BaseFilter">BaseFilter</a></li>
 <li>typing.Generic</li>
 </ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="mirai_extensions.trigger.message.FriendMessageTrigger.custom_filter"><code class="name">var <span class="ident">custom_filter</span> : Optional[Callable[[mirai.models.events.FriendMessage], Union[Awaitable[Any], Any]]]</code></dt>
-<dd>
-<div class="desc"><p>过滤器。</p></div>
-</dd>
-<dt id="mirai_extensions.trigger.message.FriendMessageTrigger.friend"><code class="name">var <span class="ident">friend</span> : Optional[int]</code></dt>
-<dd>
-<div class="desc"><p>指定好友。</p></div>
-</dd>
-<dt id="mirai_extensions.trigger.message.FriendMessageTrigger.quote"><code class="name">var <span class="ident">quote</span> : Optional[int]</code></dt>
-<dd>
-<div class="desc"><p>指定引用某条消息。</p></div>
-</dd>
-</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="mirai_extensions.trigger.trigger.Trigger" href="trigger.html#mirai_extensions.trigger.trigger.Trigger">Trigger</a></b></code>:
+<li><code><b><a title="mirai_extensions.trigger.filter.Filter" href="filter.html#mirai_extensions.trigger.filter.Filter">Filter</a></b></code>:
 <ul class="hlist">
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.add_done_callback" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.add_done_callback">add_done_callback</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.catch" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.catch">catch</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.done" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.done">done</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.event_name" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.event_name">event_name</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.filter" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.filter">filter</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.priority" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.priority">priority</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.reset" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.reset">reset</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.set_filter" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.set_filter">set_filter</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.wait" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.wait">wait</a></code></li>
+<li><code><a title="mirai_extensions.trigger.filter.Filter.catch" href="filter.html#mirai_extensions.trigger.filter.BaseFilter.catch">catch</a></code></li>
+<li><code><a title="mirai_extensions.trigger.filter.Filter.event_name" href="filter.html#mirai_extensions.trigger.filter.Filter.event_name">event_name</a></code></li>
+<li><code><a title="mirai_extensions.trigger.filter.Filter.mixin" href="filter.html#mirai_extensions.trigger.filter.BaseFilter.mixin">mixin</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="mirai_extensions.trigger.message.GroupMessageTrigger"><code class="flex name class">
-<span>class <span class="ident">GroupMessageTrigger</span></span>
-<span>(</span><span>group: Union[mirai.models.entities.Group, int, TNotSpecified, None] = &lt;object object&gt;, group_member: Union[mirai.models.entities.GroupMember, int, None] = None, quote: Union[mirai.models.events.MessageEvent, mirai.models.message.MessageChain, int, None] = None, priority: int = 0, filter: Optional[Callable[[mirai.models.events.GroupMessage], Union[Awaitable[Any], Any]]] = None)</span>
+<dt id="mirai_extensions.trigger.message.GroupFilter"><code class="flex name class">
+<span>class <span class="ident">GroupFilter</span></span>
+<span>(</span><span>group: Union[mirai.models.entities.Group, int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>事件过滤器，提供对事件进行选择性过滤和解析的功能。</p>
+<p>事件过滤器提供了 mixin 机制，允许混入其他过滤器。</p>
+<p>过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p>
+<h2 id="args">Args</h2>
+<p>mixin (<code>Iterable['BaseFilter[TEvent]']</code>): 过滤器混入。
+过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GroupFilter(BaseFilter[TMessageEventWithGroup]):
+    def __init__(self, group: Union[Group, int]):
+        if isinstance(group, Group):
+            group = group.id
+        self.group = group
+
+    def _catch(
+        self, event: TMessageEventWithGroup
+    ) -&gt; Optional[TMessageEventWithGroup]:
+        if event.group.id != self.group:
+            return None
+        return event</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="mirai_extensions.trigger.filter.BaseFilter" href="filter.html#mirai_extensions.trigger.filter.BaseFilter">BaseFilter</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="mirai_extensions.trigger.filter.BaseFilter" href="filter.html#mirai_extensions.trigger.filter.BaseFilter">BaseFilter</a></b></code>:
+<ul class="hlist">
+<li><code><a title="mirai_extensions.trigger.filter.BaseFilter.catch" href="filter.html#mirai_extensions.trigger.filter.BaseFilter.catch">catch</a></code></li>
+<li><code><a title="mirai_extensions.trigger.filter.BaseFilter.mixin" href="filter.html#mirai_extensions.trigger.filter.BaseFilter.mixin">mixin</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="mirai_extensions.trigger.message.GroupMemberFilter"><code class="flex name class">
+<span>class <span class="ident">GroupMemberFilter</span></span>
+<span>(</span><span>group_member: Union[mirai.models.entities.GroupMember, int], group: Union[mirai.models.entities.Group, int, TNotSpecified, None] = &lt;object object&gt;)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>事件过滤器，提供对事件进行选择性过滤和解析的功能。</p>
+<p>事件过滤器提供了 mixin 机制，允许混入其他过滤器。</p>
+<p>过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p>
+<h2 id="args">Args</h2>
+<p>mixin (<code>Iterable['BaseFilter[TEvent]']</code>): 过滤器混入。
+过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GroupMemberFilter(BaseFilter[TMessageEventWithGroup]):
+    def __init__(
+        self,
+        group_member: Union[GroupMember, int],
+        group: Union[Group, int, TNotSpecified, None] = _not_specified,
+    ):
+        if isinstance(group_member, GroupMember):
+            if group is _not_specified:
+                group = group_member.group.id
+            group_member = group_member.id
+
+        mixin = [FriendFilter(group_member)]
+        if group and group is not _not_specified:
+            mixin.append(GroupFilter(cast(Union[Group, int], group)))
+        super().__init__(mixin)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="mirai_extensions.trigger.filter.BaseFilter" href="filter.html#mirai_extensions.trigger.filter.BaseFilter">BaseFilter</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="mirai_extensions.trigger.filter.BaseFilter" href="filter.html#mirai_extensions.trigger.filter.BaseFilter">BaseFilter</a></b></code>:
+<ul class="hlist">
+<li><code><a title="mirai_extensions.trigger.filter.BaseFilter.catch" href="filter.html#mirai_extensions.trigger.filter.BaseFilter.catch">catch</a></code></li>
+<li><code><a title="mirai_extensions.trigger.filter.BaseFilter.mixin" href="filter.html#mirai_extensions.trigger.filter.BaseFilter.mixin">mixin</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="mirai_extensions.trigger.message.GroupMessageFilter"><code class="flex name class">
+<span>class <span class="ident">GroupMessageFilter</span></span>
+<span>(</span><span>group: Union[mirai.models.entities.Group, int, TNotSpecified, None] = &lt;object object&gt;, group_member: Union[mirai.models.entities.GroupMember, int, None] = None, quote: Union[mirai.models.events.MessageEvent, mirai.models.message.MessageChain, int, None] = None, func: Optional[Callable[[mirai.models.events.GroupMessage], Optional[Any]]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>群消息触发器。判断只接受指定群的某个群成员发来的消息，或必需引用某条消息。</p>
@@ -368,23 +425,14 @@ filter (<code>Optional[TFilter[GroupMessage]]</code>): 过滤器。</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class GroupMessageTrigger(Trigger[GroupMessage]):
+<pre><code class="python">class GroupMessageFilter(Filter[GroupMessage]):
     &#34;&#34;&#34;群消息触发器。判断只接受指定群的某个群成员发来的消息，或必需引用某条消息。&#34;&#34;&#34;
-    group: Optional[int]
-    &#34;&#34;&#34;指定群。&#34;&#34;&#34;
-    group_member: Optional[int]
-    &#34;&#34;&#34;指定群成员。&#34;&#34;&#34;
-    quote: Optional[int]
-    &#34;&#34;&#34;指定引用某条消息。&#34;&#34;&#34;
-    custom_filter: Optional[TFilter[GroupMessage]]
-    &#34;&#34;&#34;过滤器。&#34;&#34;&#34;
     def __init__(
         self,
         group: Union[Group, int, TNotSpecified, None] = _not_specified,
         group_member: Union[GroupMember, int, None] = None,
         quote: Union[MessageEvent, MessageChain, int, None] = None,
-        priority: int = 0,
-        filter: Optional[TFilter[GroupMessage]] = None
+        func: Optional[TFilter[GroupMessage]] = None
     ):
         &#34;&#34;&#34;
         Args:
@@ -394,20 +442,52 @@ filter (<code>Optional[TFilter[GroupMessage]]</code>): 过滤器。</p></div>
             priority (`int`): 优先级，小者优先。
             filter (`Optional[TFilter[GroupMessage]]`): 过滤器。
         &#34;&#34;&#34;
-        super().__init__(GroupMessage, priority, filter)
+        mixin = []
+        if group_member:
+            mixin.append(GroupMemberFilter(group_member, group))
+        elif group and group is not _not_specified:
+            mixin.append(GroupFilter(cast(Union[Group, int], group)))
+        if quote:
+            mixin.append(QuoteFilter(quote))
 
-        if isinstance(group_member, GroupMember):
-            if group is _not_specified:
-                group = group_member.group.id
-            group_member = group_member.id
-        self.group_member = group_member
+        super().__init__(GroupMessage, mixin, func)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="mirai_extensions.trigger.filter.Filter" href="filter.html#mirai_extensions.trigger.filter.Filter">Filter</a></li>
+<li><a title="mirai_extensions.trigger.filter.BaseFilter" href="filter.html#mirai_extensions.trigger.filter.BaseFilter">BaseFilter</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="mirai_extensions.trigger.filter.Filter" href="filter.html#mirai_extensions.trigger.filter.Filter">Filter</a></b></code>:
+<ul class="hlist">
+<li><code><a title="mirai_extensions.trigger.filter.Filter.catch" href="filter.html#mirai_extensions.trigger.filter.BaseFilter.catch">catch</a></code></li>
+<li><code><a title="mirai_extensions.trigger.filter.Filter.event_name" href="filter.html#mirai_extensions.trigger.filter.Filter.event_name">event_name</a></code></li>
+<li><code><a title="mirai_extensions.trigger.filter.Filter.mixin" href="filter.html#mirai_extensions.trigger.filter.BaseFilter.mixin">mixin</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="mirai_extensions.trigger.message.QuoteFilter"><code class="flex name class">
+<span>class <span class="ident">QuoteFilter</span></span>
+<span>(</span><span>quote: Union[mirai.models.events.MessageEvent, mirai.models.message.MessageChain, int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>事件过滤器，提供对事件进行选择性过滤和解析的功能。</p>
+<p>事件过滤器提供了 mixin 机制，允许混入其他过滤器。</p>
+<p>过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p>
+<h2 id="args">Args</h2>
+<p>mixin (<code>Iterable['BaseFilter[TEvent]']</code>): 过滤器混入。
+过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class QuoteFilter(BaseFilter[MessageEvent]):
+    quote: Optional[int]
 
-        if isinstance(group, Group):
-            group = group.id
-        elif group is _not_specified:
-            group = None
-        self.group = cast(Optional[int], group)
-
+    def __init__(self, quote: Union[MessageEvent, MessageChain, int]):
         if isinstance(quote, MessageEvent):
             quote = quote.message_chain
         if isinstance(quote, MessageChain):
@@ -416,66 +496,38 @@ filter (<code>Optional[TFilter[GroupMessage]]</code>): 过滤器。</p></div>
         else:
             self.quote = quote
 
-    async def _filter(self, event: GroupMessage):
-        if self.group and event.group.id != self.group:
-            return
-        if self.group_member and event.sender.id != self.group_member:
-            return
+    def _catch(self, event: MessageEvent) -&gt; Optional[MessageEvent]:
         if self.quote:
-            quotes = event.message_chain[Quote, 1]
-            if not quotes or quotes[0].id != self.quote:
-                return
-        if self.custom_filter:
-            return await async_(self.custom_filter(event))
-
-    def set_filter(self, filter: TFilter[GroupMessage]):
-        self.custom_filter = filter
-        return super().set_filter(self._filter)</code></pre>
+            quote = event.message_chain.get_first(Quote)
+            if not quote or quote.id != self.quote:
+                return None
+        return event</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="mirai_extensions.trigger.trigger.Trigger" href="trigger.html#mirai_extensions.trigger.trigger.Trigger">Trigger</a></li>
+<li><a title="mirai_extensions.trigger.filter.BaseFilter" href="filter.html#mirai_extensions.trigger.filter.BaseFilter">BaseFilter</a></li>
 <li>typing.Generic</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="mirai_extensions.trigger.message.GroupMessageTrigger.custom_filter"><code class="name">var <span class="ident">custom_filter</span> : Optional[Callable[[mirai.models.events.GroupMessage], Union[Awaitable[Any], Any]]]</code></dt>
+<dt id="mirai_extensions.trigger.message.QuoteFilter.quote"><code class="name">var <span class="ident">quote</span> : Optional[int]</code></dt>
 <dd>
-<div class="desc"><p>过滤器。</p></div>
-</dd>
-<dt id="mirai_extensions.trigger.message.GroupMessageTrigger.group"><code class="name">var <span class="ident">group</span> : Optional[int]</code></dt>
-<dd>
-<div class="desc"><p>指定群。</p></div>
-</dd>
-<dt id="mirai_extensions.trigger.message.GroupMessageTrigger.group_member"><code class="name">var <span class="ident">group_member</span> : Optional[int]</code></dt>
-<dd>
-<div class="desc"><p>指定群成员。</p></div>
-</dd>
-<dt id="mirai_extensions.trigger.message.GroupMessageTrigger.quote"><code class="name">var <span class="ident">quote</span> : Optional[int]</code></dt>
-<dd>
-<div class="desc"><p>指定引用某条消息。</p></div>
+<div class="desc"></div>
 </dd>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="mirai_extensions.trigger.trigger.Trigger" href="trigger.html#mirai_extensions.trigger.trigger.Trigger">Trigger</a></b></code>:
+<li><code><b><a title="mirai_extensions.trigger.filter.BaseFilter" href="filter.html#mirai_extensions.trigger.filter.BaseFilter">BaseFilter</a></b></code>:
 <ul class="hlist">
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.add_done_callback" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.add_done_callback">add_done_callback</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.catch" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.catch">catch</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.done" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.done">done</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.event_name" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.event_name">event_name</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.filter" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.filter">filter</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.priority" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.priority">priority</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.reset" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.reset">reset</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.set_filter" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.set_filter">set_filter</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.wait" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.wait">wait</a></code></li>
+<li><code><a title="mirai_extensions.trigger.filter.BaseFilter.catch" href="filter.html#mirai_extensions.trigger.filter.BaseFilter.catch">catch</a></code></li>
+<li><code><a title="mirai_extensions.trigger.filter.BaseFilter.mixin" href="filter.html#mirai_extensions.trigger.filter.BaseFilter.mixin">mixin</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="mirai_extensions.trigger.message.TempMessageTrigger"><code class="flex name class">
-<span>class <span class="ident">TempMessageTrigger</span></span>
-<span>(</span><span>group: Union[mirai.models.entities.Group, int, TNotSpecified, None] = &lt;object object&gt;, group_member: Union[mirai.models.entities.GroupMember, int, None] = None, quote: Union[mirai.models.events.MessageEvent, mirai.models.message.MessageChain, int, None] = None, priority: int = 0, filter: Optional[Callable[[mirai.models.events.TempMessage], Union[Awaitable[Any], Any]]] = None)</span>
+<dt id="mirai_extensions.trigger.message.TempMessageFilter"><code class="flex name class">
+<span>class <span class="ident">TempMessageFilter</span></span>
+<span>(</span><span>group: Union[mirai.models.entities.Group, int, TNotSpecified, None] = &lt;object object&gt;, group_member: Union[mirai.models.entities.GroupMember, int, None] = None, quote: Union[mirai.models.events.MessageEvent, mirai.models.message.MessageChain, int, None] = None, func: Optional[Callable[[mirai.models.events.TempMessage], Optional[Any]]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>临时消息触发器。判断只接受指定群的某个群成员发来的消息，或必需引用某条消息。</p>
@@ -489,23 +541,14 @@ filter (<code>Optional[TFilter[TempMessage]]</code>): 过滤器。</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class TempMessageTrigger(Trigger[TempMessage]):
+<pre><code class="python">class TempMessageFilter(Filter[TempMessage]):
     &#34;&#34;&#34;临时消息触发器。判断只接受指定群的某个群成员发来的消息，或必需引用某条消息。&#34;&#34;&#34;
-    group: Optional[int]
-    &#34;&#34;&#34;指定群。&#34;&#34;&#34;
-    group_member: Optional[int]
-    &#34;&#34;&#34;指定群成员。&#34;&#34;&#34;
-    quote: Optional[int]
-    &#34;&#34;&#34;指定引用某条消息。&#34;&#34;&#34;
-    custom_filter: Optional[TFilter[TempMessage]]
-    &#34;&#34;&#34;过滤器。&#34;&#34;&#34;
     def __init__(
         self,
         group: Union[Group, int, TNotSpecified, None] = _not_specified,
         group_member: Union[GroupMember, int, None] = None,
         quote: Union[MessageEvent, MessageChain, int, None] = None,
-        priority: int = 0,
-        filter: Optional[TFilter[TempMessage]] = None
+        func: Optional[TFilter[TempMessage]] = None
     ):
         &#34;&#34;&#34;
         Args:
@@ -515,81 +558,29 @@ filter (<code>Optional[TFilter[TempMessage]]</code>): 过滤器。</p></div>
             priority (`int`): 优先级，小者优先。
             filter (`Optional[TFilter[TempMessage]]`): 过滤器。
         &#34;&#34;&#34;
-        super().__init__(TempMessage, priority, filter)
+        mixin = []
+        if group_member:
+            mixin.append(GroupMemberFilter(group_member, group))
+        elif group and group is not _not_specified:
+            mixin.append(GroupFilter(cast(Union[Group, int], group)))
+        if quote:
+            mixin.append(QuoteFilter(quote))
 
-        if isinstance(group_member, GroupMember):
-            if group is _not_specified:
-                group = group_member.group.id
-            group_member = group_member.id
-        self.group_member = group_member
-
-        if isinstance(group, Group):
-            group = group.id
-        elif group is _not_specified:
-            group = None
-        self.group = cast(Optional[int], group)
-
-        if isinstance(quote, MessageEvent):
-            quote = quote.message_chain
-        if isinstance(quote, MessageChain):
-            quote = quote.message_id
-            self.quote = quote if quote &gt;= 0 else None
-        else:
-            self.quote = quote
-
-    async def _filter(self, event: TempMessage):
-        if self.group and event.group.id != self.group:
-            return
-        if self.group_member and event.sender.id != self.group_member:
-            return
-        if self.quote:
-            quotes = event.message_chain[Quote, 1]
-            if not quotes or quotes[0].id != self.quote:
-                return
-        if self.custom_filter:
-            return await async_(self.custom_filter(event))
-
-    def set_filter(self, filter: TFilter[TempMessage]):
-        self.custom_filter = filter
-        return super().set_filter(self._filter)</code></pre>
+        super().__init__(GroupMessage, mixin, func)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="mirai_extensions.trigger.trigger.Trigger" href="trigger.html#mirai_extensions.trigger.trigger.Trigger">Trigger</a></li>
+<li><a title="mirai_extensions.trigger.filter.Filter" href="filter.html#mirai_extensions.trigger.filter.Filter">Filter</a></li>
+<li><a title="mirai_extensions.trigger.filter.BaseFilter" href="filter.html#mirai_extensions.trigger.filter.BaseFilter">BaseFilter</a></li>
 <li>typing.Generic</li>
 </ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="mirai_extensions.trigger.message.TempMessageTrigger.custom_filter"><code class="name">var <span class="ident">custom_filter</span> : Optional[Callable[[mirai.models.events.TempMessage], Union[Awaitable[Any], Any]]]</code></dt>
-<dd>
-<div class="desc"><p>过滤器。</p></div>
-</dd>
-<dt id="mirai_extensions.trigger.message.TempMessageTrigger.group"><code class="name">var <span class="ident">group</span> : Optional[int]</code></dt>
-<dd>
-<div class="desc"><p>指定群。</p></div>
-</dd>
-<dt id="mirai_extensions.trigger.message.TempMessageTrigger.group_member"><code class="name">var <span class="ident">group_member</span> : Optional[int]</code></dt>
-<dd>
-<div class="desc"><p>指定群成员。</p></div>
-</dd>
-<dt id="mirai_extensions.trigger.message.TempMessageTrigger.quote"><code class="name">var <span class="ident">quote</span> : Optional[int]</code></dt>
-<dd>
-<div class="desc"><p>指定引用某条消息。</p></div>
-</dd>
-</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="mirai_extensions.trigger.trigger.Trigger" href="trigger.html#mirai_extensions.trigger.trigger.Trigger">Trigger</a></b></code>:
+<li><code><b><a title="mirai_extensions.trigger.filter.Filter" href="filter.html#mirai_extensions.trigger.filter.Filter">Filter</a></b></code>:
 <ul class="hlist">
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.add_done_callback" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.add_done_callback">add_done_callback</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.catch" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.catch">catch</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.done" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.done">done</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.event_name" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.event_name">event_name</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.filter" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.filter">filter</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.priority" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.priority">priority</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.reset" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.reset">reset</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.set_filter" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.set_filter">set_filter</a></code></li>
-<li><code><a title="mirai_extensions.trigger.trigger.Trigger.wait" href="trigger.html#mirai_extensions.trigger.trigger.Trigger.wait">wait</a></code></li>
+<li><code><a title="mirai_extensions.trigger.filter.Filter.catch" href="filter.html#mirai_extensions.trigger.filter.BaseFilter.catch">catch</a></code></li>
+<li><code><a title="mirai_extensions.trigger.filter.Filter.event_name" href="filter.html#mirai_extensions.trigger.filter.Filter.event_name">event_name</a></code></li>
+<li><code><a title="mirai_extensions.trigger.filter.Filter.mixin" href="filter.html#mirai_extensions.trigger.filter.BaseFilter.mixin">mixin</a></code></li>
 </ul>
 </li>
 </ul>
@@ -611,30 +602,31 @@ filter (<code>Optional[TFilter[TempMessage]]</code>): 过滤器。</p></div>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="mirai_extensions.trigger.message.FriendMessageTrigger" href="#mirai_extensions.trigger.message.FriendMessageTrigger">FriendMessageTrigger</a></code></h4>
+<h4><code><a title="mirai_extensions.trigger.message.FriendFilter" href="#mirai_extensions.trigger.message.FriendFilter">FriendFilter</a></code></h4>
 <ul class="">
-<li><code><a title="mirai_extensions.trigger.message.FriendMessageTrigger.custom_filter" href="#mirai_extensions.trigger.message.FriendMessageTrigger.custom_filter">custom_filter</a></code></li>
-<li><code><a title="mirai_extensions.trigger.message.FriendMessageTrigger.friend" href="#mirai_extensions.trigger.message.FriendMessageTrigger.friend">friend</a></code></li>
-<li><code><a title="mirai_extensions.trigger.message.FriendMessageTrigger.quote" href="#mirai_extensions.trigger.message.FriendMessageTrigger.quote">quote</a></code></li>
+<li><code><a title="mirai_extensions.trigger.message.FriendFilter.friend" href="#mirai_extensions.trigger.message.FriendFilter.friend">friend</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="mirai_extensions.trigger.message.GroupMessageTrigger" href="#mirai_extensions.trigger.message.GroupMessageTrigger">GroupMessageTrigger</a></code></h4>
+<h4><code><a title="mirai_extensions.trigger.message.FriendMessageFilter" href="#mirai_extensions.trigger.message.FriendMessageFilter">FriendMessageFilter</a></code></h4>
+</li>
+<li>
+<h4><code><a title="mirai_extensions.trigger.message.GroupFilter" href="#mirai_extensions.trigger.message.GroupFilter">GroupFilter</a></code></h4>
+</li>
+<li>
+<h4><code><a title="mirai_extensions.trigger.message.GroupMemberFilter" href="#mirai_extensions.trigger.message.GroupMemberFilter">GroupMemberFilter</a></code></h4>
+</li>
+<li>
+<h4><code><a title="mirai_extensions.trigger.message.GroupMessageFilter" href="#mirai_extensions.trigger.message.GroupMessageFilter">GroupMessageFilter</a></code></h4>
+</li>
+<li>
+<h4><code><a title="mirai_extensions.trigger.message.QuoteFilter" href="#mirai_extensions.trigger.message.QuoteFilter">QuoteFilter</a></code></h4>
 <ul class="">
-<li><code><a title="mirai_extensions.trigger.message.GroupMessageTrigger.custom_filter" href="#mirai_extensions.trigger.message.GroupMessageTrigger.custom_filter">custom_filter</a></code></li>
-<li><code><a title="mirai_extensions.trigger.message.GroupMessageTrigger.group" href="#mirai_extensions.trigger.message.GroupMessageTrigger.group">group</a></code></li>
-<li><code><a title="mirai_extensions.trigger.message.GroupMessageTrigger.group_member" href="#mirai_extensions.trigger.message.GroupMessageTrigger.group_member">group_member</a></code></li>
-<li><code><a title="mirai_extensions.trigger.message.GroupMessageTrigger.quote" href="#mirai_extensions.trigger.message.GroupMessageTrigger.quote">quote</a></code></li>
+<li><code><a title="mirai_extensions.trigger.message.QuoteFilter.quote" href="#mirai_extensions.trigger.message.QuoteFilter.quote">quote</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="mirai_extensions.trigger.message.TempMessageTrigger" href="#mirai_extensions.trigger.message.TempMessageTrigger">TempMessageTrigger</a></code></h4>
-<ul class="">
-<li><code><a title="mirai_extensions.trigger.message.TempMessageTrigger.custom_filter" href="#mirai_extensions.trigger.message.TempMessageTrigger.custom_filter">custom_filter</a></code></li>
-<li><code><a title="mirai_extensions.trigger.message.TempMessageTrigger.group" href="#mirai_extensions.trigger.message.TempMessageTrigger.group">group</a></code></li>
-<li><code><a title="mirai_extensions.trigger.message.TempMessageTrigger.group_member" href="#mirai_extensions.trigger.message.TempMessageTrigger.group_member">group_member</a></code></li>
-<li><code><a title="mirai_extensions.trigger.message.TempMessageTrigger.quote" href="#mirai_extensions.trigger.message.TempMessageTrigger.quote">quote</a></code></li>
-</ul>
+<h4><code><a title="mirai_extensions.trigger.message.TempMessageFilter" href="#mirai_extensions.trigger.message.TempMessageFilter">TempMessageFilter</a></code></h4>
 </li>
 </ul>
 </li>

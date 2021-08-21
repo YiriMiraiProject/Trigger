@@ -22,7 +22,7 @@ class BaseFilter(Generic[TEvent]):
     def __init__(self, mixin: Iterable['BaseFilter[TEvent]']):
         """
         Args:
-            mixin (`Iterable['BaseFilter[TEvent]']`): 过滤器混入。
+            mixin: 过滤器混入。
                 过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。
         """
         self.mixin = list(mixin)
@@ -40,11 +40,11 @@ class BaseFilter(Generic[TEvent]):
         """尝试捕获并解析一个事件。
 
         Args:
-            event (`TEvent`): 事件。
+            event: 事件。
 
         Returns:
-            `Any`: 解析后的结果。
-            `None`: 未捕获。
+            Any: 解析后的结果。
+            None: 未捕获。
         """
         if any(filter.catch(event) is None for filter in self.mixin):
             return None
@@ -87,10 +87,10 @@ class Filter(BaseFilter[TEvent]):
     ):
         """
         Args:
-            event_name (`Type[TEvent]`): 过滤器捕获的事件类型。
-            mixin (`Iterable[BaseFilter[TEvent]]`): 过滤器混入。
+            event_name: 过滤器捕获的事件类型。
+            mixin: 过滤器混入。
                 过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。
-            func (`Optional[TFilter[TEvent]]`): 自定义的捕获函数。
+            func: 自定义的捕获函数。
         """
         super().__init__(mixin or [])
         self.event_name = event_name

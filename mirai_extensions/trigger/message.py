@@ -98,10 +98,10 @@ class FriendMessageFilter(Filter[FriendMessage]):
     ):
         """
         Args:
-            friend (`Union[Friend, int, None]`): 指定好友。
-            quote (`Union[MessageEvent, MessageChain, int, None]`): 指定引用某条消息。
-            priority (`int`): 优先级，小者优先。
-            filter (`Optional[TFilter[FriendMessage]]`): 过滤器。
+            friend: 指定好友。
+            quote: 指定引用某条消息。
+            priority: 优先级，小者优先。
+            filter: 过滤器。
         """
         mixin = []
         if friend:
@@ -128,11 +128,11 @@ class GroupMessageFilter(Filter[GroupMessage]):
     ):
         """
         Args:
-            group (`Union[Group, int, None]`): 指定群。
-            group_member (`Union[GroupMember, int, None]`): 指定群成员。
-            quote (`Union[MessageEvent, MessageChain, int, None]`): 指定引用某条消息。
-            priority (`int`): 优先级，小者优先。
-            filter (`Optional[TFilter[GroupMessage]]`): 过滤器。
+            group: 指定群。
+            group_member: 指定群成员。
+            quote: 指定引用某条消息。
+            priority: 优先级，小者优先。
+            filter: 过滤器。
         """
         mixin = []
         if group_member:
@@ -156,11 +156,11 @@ class TempMessageFilter(Filter[TempMessage]):
     ):
         """
         Args:
-            group (`Union[Group, int, None]`): 指定群。
-            group_member (`Union[GroupMember, int, None]`): 指定群成员。
-            quote (`Union[MessageEvent, MessageChain, int, None]`): 指定引用某条消息。
-            priority (`int`): 优先级，小者优先。
-            filter (`Optional[TFilter[TempMessage]]`): 过滤器。
+            group: 指定群。
+            group_member: 指定群成员。
+            quote: 指定引用某条消息。
+            priority: 优先级，小者优先。
+            filter: 过滤器。
         """
         mixin = []
         if group_member:

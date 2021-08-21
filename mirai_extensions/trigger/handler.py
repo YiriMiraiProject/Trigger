@@ -43,8 +43,8 @@ class HandlerControl(AbstractEventBus):
     def __init__(self, bus: AbstractEventBus, priority: int = 0):
         """
         Args:
-            bus (`AbstractEventBus`): 事件总线。
-            priority (`int`): 事件接收控制器工作的优先级，小者优先。
+            bus: 事件总线。
+            priority: 事件接收控制器工作的优先级，小者优先。
         """
         self.bus = bus
         self.priority = priority
@@ -65,9 +65,9 @@ class HandlerControl(AbstractEventBus):
         """注册一个过滤器的处理器。
 
         Args:
-            event (`Filter`): 过滤器。
-            func (`Callable`): 处理器。
-            priority (`int`): 处理器的优先级，小者优先。
+            event: 过滤器。
+            func: 处理器。
+            priority: 处理器的优先级，小者优先。
         """
         filter_ = event
         event_name = filter_.event_name
@@ -80,8 +80,8 @@ class HandlerControl(AbstractEventBus):
         """取消一个过滤器的处理器。
 
         Args:
-            event (`Filter`): 过滤器。
-            func (`Callable`): 处理器。
+            event: 过滤器。
+            func: 处理器。
         """
         try:
             self._handlers[event.event_name].remove((event, func))
@@ -99,8 +99,8 @@ class HandlerControl(AbstractEventBus):
         ```
 
         Args:
-            event (`Filter`): 过滤器。
-            priority (`int`): 处理器的优先级，小者优先。
+            event: 过滤器。
+            priority: 处理器的优先级，小者优先。
         """
         def decorator(func: THandler) -> THandler:
             self.subscribe(event, func, priority)
@@ -113,6 +113,7 @@ class HandlerControl(AbstractEventBus):
 
         Args:
             event: 事件名。
-            *args, **kwargs: 发送的参数。
+            *args: 发送的参数。
+            **kwargs: 发送的参数。
         """
         return await self.bus.emit(event, *args, **kwargs)

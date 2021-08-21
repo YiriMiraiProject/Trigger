@@ -52,8 +52,8 @@ class Trigger(Generic[TEvent]):
     ):
         """
         Args:
-            filter (`Filter[TEvent]`): 过滤器。
-            priority (`int`): 优先级，小者优先。
+            filter: 过滤器。
+            priority: 优先级，小者优先。
         """
         self.priority = priority
         self.filter = filter
@@ -78,10 +78,10 @@ class Trigger(Generic[TEvent]):
         事件捕获成功后，触发器会进入已完成状态。
 
         Args
-            event (`TEvent`): 事件。
+            event: 事件。
 
         Returns:
-            `bool`: 捕获成功与否。
+            bool: 捕获成功与否。
         """
         if self._future is None or self.done():
             return False
@@ -111,7 +111,7 @@ class Trigger(Generic[TEvent]):
         回调函数接受唯一参数：触发器本身。
 
         Args:
-            callback (`Callable[['Trigger'], Any]`): 回调函数。
+            callback: 回调函数。
         """
         if self._future:
             self._future.add_done_callback(lambda _: callback(self))
@@ -124,7 +124,7 @@ class Trigger(Generic[TEvent]):
         注意，此方法必须被异步函数调用或间接调用。
 
         Returns:
-            `Trigger[TEvent]`: 触发器本身。
+            Trigger[TEvent]: 触发器本身。
         """
         if self._future:
             self._future.cancel()
@@ -136,11 +136,11 @@ class Trigger(Generic[TEvent]):
         """等待事件触发，返回事件触发器的结果。
 
         Args:
-            timeout (`float`): 超时时间，单位为秒。
+            timeout: 超时时间，单位为秒。
 
         Returns:
-            `Any`: 触发器的结果。
-            `None`: 触发器超时。
+            Any: 触发器的结果。
+            None: 触发器超时。
         """
         if self._waited:
             raise RuntimeError('触发器已被等待。')

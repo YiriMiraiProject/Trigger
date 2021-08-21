@@ -44,8 +44,8 @@ class InterruptControl:
     def __init__(self, bus: AbstractEventBus, priority: int = 15):
         """
         Args:
-            bus (`AbstractEventBus`): 事件总线。
-            priority (`int`): 中断控制器工作的优先级，默认值 15。
+            bus: 事件总线。
+            priority: 中断控制器工作的优先级，默认值 15。
         """
         self.bus = bus
         self._triggers: Dict[Any, PriorityDict[Trigger]] = {}
@@ -71,12 +71,12 @@ class InterruptControl:
         """监听一个过滤器或触发器，等待其完成。
 
         Args:
-            trigger (`Union[Filter, Trigger]`): 过滤器或触发器。
-            timeout (`float`): 超时时间，单位为秒。
+            trigger: 过滤器或触发器。
+            timeout: 超时时间，单位为秒。
 
         Returns:
-            `Any`: 触发器的结果。
-            `None`: 触发器超时。
+            Any: 触发器的结果。
+            None: 触发器超时。
         """
         event_name = trigger.event_name
         if isinstance(trigger, Filter):

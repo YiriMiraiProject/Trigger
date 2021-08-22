@@ -105,10 +105,15 @@ def filter_two(event: FriendMessage):
 <p>上例中的过滤器将检测好友消息的发送对象，只有来自 12345678 的消息会被捕获。其他情况下，过滤器返回默认值 None，
 不会被捕获。</p>
 <h2 id="args">Args</h2>
-<p>event_name (<code>Type[TEvent]</code>): 过滤器捕获的事件类型。
-mixin (<code>Iterable[BaseFilter[TEvent]]</code>): 过滤器混入。
-过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。
-func (<code>Optional[TFilter[TEvent]]</code>): 自定义的捕获函数。</p></div>
+<dl>
+<dt><strong><code>event_name</code></strong></dt>
+<dd>过滤器捕获的事件类型。</dd>
+<dt><strong><code>mixin</code></strong></dt>
+<dd>过滤器混入。
+过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</dd>
+<dt><strong><code>func</code></strong></dt>
+<dd>自定义的捕获函数。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -149,10 +154,10 @@ func (<code>Optional[TFilter[TEvent]]</code>): 自定义的捕获函数。</p></
     ):
         &#34;&#34;&#34;
         Args:
-            event_name (`Type[TEvent]`): 过滤器捕获的事件类型。
-            mixin (`Iterable[BaseFilter[TEvent]]`): 过滤器混入。
+            event_name: 过滤器捕获的事件类型。
+            mixin: 过滤器混入。
                 过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。
-            func (`Optional[TFilter[TEvent]]`): 自定义的捕获函数。
+            func: 自定义的捕获函数。
         &#34;&#34;&#34;
         super().__init__(mixin or [])
         self.event_name = event_name
@@ -202,10 +207,16 @@ func (<code>Optional[TFilter[TEvent]]</code>): 自定义的捕获函数。</p></
 <dd>
 <div class="desc"><p>好友消息触发器。判断只接受指定好友发来的消息，或必需引用某条消息。</p>
 <h2 id="args">Args</h2>
-<p>friend (<code>Union[Friend, int, None]</code>): 指定好友。
-quote (<code>Union[MessageEvent, MessageChain, int, None]</code>): 指定引用某条消息。
-priority (<code>int</code>): 优先级，小者优先。
-filter (<code>Optional[TFilter[FriendMessage]]</code>): 过滤器。</p></div>
+<dl>
+<dt><strong><code>friend</code></strong></dt>
+<dd>指定好友。</dd>
+<dt><strong><code>quote</code></strong></dt>
+<dd>指定引用某条消息。</dd>
+<dt><strong><code>priority</code></strong></dt>
+<dd>优先级，小者优先。</dd>
+<dt><strong><code>filter</code></strong></dt>
+<dd>过滤器。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -220,10 +231,10 @@ filter (<code>Optional[TFilter[FriendMessage]]</code>): 过滤器。</p></div>
     ):
         &#34;&#34;&#34;
         Args:
-            friend (`Union[Friend, int, None]`): 指定好友。
-            quote (`Union[MessageEvent, MessageChain, int, None]`): 指定引用某条消息。
-            priority (`int`): 优先级，小者优先。
-            filter (`Optional[TFilter[FriendMessage]]`): 过滤器。
+            friend: 指定好友。
+            quote: 指定引用某条消息。
+            priority: 优先级，小者优先。
+            filter: 过滤器。
         &#34;&#34;&#34;
         mixin = []
         if friend:
@@ -262,11 +273,18 @@ filter (<code>Optional[TFilter[FriendMessage]]</code>): 过滤器。</p></div>
 <dd>
 <div class="desc"><p>群消息触发器。判断只接受指定群的某个群成员发来的消息，或必需引用某条消息。</p>
 <h2 id="args">Args</h2>
-<p>group (<code>Union[Group, int, None]</code>): 指定群。
-group_member (<code>Union[GroupMember, int, None]</code>): 指定群成员。
-quote (<code>Union[MessageEvent, MessageChain, int, None]</code>): 指定引用某条消息。
-priority (<code>int</code>): 优先级，小者优先。
-filter (<code>Optional[TFilter[GroupMessage]]</code>): 过滤器。</p></div>
+<dl>
+<dt><strong><code>group</code></strong></dt>
+<dd>指定群。</dd>
+<dt><strong><code>group_member</code></strong></dt>
+<dd>指定群成员。</dd>
+<dt><strong><code>quote</code></strong></dt>
+<dd>指定引用某条消息。</dd>
+<dt><strong><code>priority</code></strong></dt>
+<dd>优先级，小者优先。</dd>
+<dt><strong><code>filter</code></strong></dt>
+<dd>过滤器。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -282,11 +300,11 @@ filter (<code>Optional[TFilter[GroupMessage]]</code>): 过滤器。</p></div>
     ):
         &#34;&#34;&#34;
         Args:
-            group (`Union[Group, int, None]`): 指定群。
-            group_member (`Union[GroupMember, int, None]`): 指定群成员。
-            quote (`Union[MessageEvent, MessageChain, int, None]`): 指定引用某条消息。
-            priority (`int`): 优先级，小者优先。
-            filter (`Optional[TFilter[GroupMessage]]`): 过滤器。
+            group: 指定群。
+            group_member: 指定群成员。
+            quote: 指定引用某条消息。
+            priority: 优先级，小者优先。
+            filter: 过滤器。
         &#34;&#34;&#34;
         mixin = []
         if group_member:
@@ -337,8 +355,12 @@ async def handler(event: FriendMessage, payload: str):
     ...
 </code></pre>
 <h2 id="args">Args</h2>
-<p>bus (<code>AbstractEventBus</code>): 事件总线。
-priority (<code>int</code>): 事件接收控制器工作的优先级，小者优先。</p></div>
+<dl>
+<dt><strong><code>bus</code></strong></dt>
+<dd>事件总线。</dd>
+<dt><strong><code>priority</code></strong></dt>
+<dd>事件接收控制器工作的优先级，小者优先。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -370,8 +392,8 @@ priority (<code>int</code>): 事件接收控制器工作的优先级，小者优
     def __init__(self, bus: AbstractEventBus, priority: int = 0):
         &#34;&#34;&#34;
         Args:
-            bus (`AbstractEventBus`): 事件总线。
-            priority (`int`): 事件接收控制器工作的优先级，小者优先。
+            bus: 事件总线。
+            priority: 事件接收控制器工作的优先级，小者优先。
         &#34;&#34;&#34;
         self.bus = bus
         self.priority = priority
@@ -392,9 +414,9 @@ priority (<code>int</code>): 事件接收控制器工作的优先级，小者优
         &#34;&#34;&#34;注册一个过滤器的处理器。
 
         Args:
-            event (`Filter`): 过滤器。
-            func (`Callable`): 处理器。
-            priority (`int`): 处理器的优先级，小者优先。
+            event: 过滤器。
+            func: 处理器。
+            priority: 处理器的优先级，小者优先。
         &#34;&#34;&#34;
         filter_ = event
         event_name = filter_.event_name
@@ -407,8 +429,8 @@ priority (<code>int</code>): 事件接收控制器工作的优先级，小者优
         &#34;&#34;&#34;取消一个过滤器的处理器。
 
         Args:
-            event (`Filter`): 过滤器。
-            func (`Callable`): 处理器。
+            event: 过滤器。
+            func: 处理器。
         &#34;&#34;&#34;
         try:
             self._handlers[event.event_name].remove((event, func))
@@ -426,8 +448,8 @@ priority (<code>int</code>): 事件接收控制器工作的优先级，小者优
         ```
 
         Args:
-            event (`Filter`): 过滤器。
-            priority (`int`): 处理器的优先级，小者优先。
+            event: 过滤器。
+            priority: 处理器的优先级，小者优先。
         &#34;&#34;&#34;
         def decorator(func: THandler) -&gt; THandler:
             self.subscribe(event, func, priority)
@@ -440,7 +462,8 @@ priority (<code>int</code>): 事件接收控制器工作的优先级，小者优
 
         Args:
             event: 事件名。
-            *args, **kwargs: 发送的参数。
+            *args: 发送的参数。
+            **kwargs: 发送的参数。
         &#34;&#34;&#34;
         return await self.bus.emit(event, *args, **kwargs)</code></pre>
 </details>
@@ -466,8 +489,11 @@ priority (<code>int</code>): 事件接收控制器工作的优先级，小者优
 <dl>
 <dt><strong><code>event</code></strong></dt>
 <dd>事件名。</dd>
-</dl>
-<p><em>args, </em>*kwargs: 发送的参数。</p></div>
+<dt><strong><code>*args</code></strong></dt>
+<dd>发送的参数。</dd>
+<dt><strong><code>**kwargs</code></strong></dt>
+<dd>发送的参数。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -477,7 +503,8 @@ priority (<code>int</code>): 事件接收控制器工作的优先级，小者优
 
     Args:
         event: 事件名。
-        *args, **kwargs: 发送的参数。
+        *args: 发送的参数。
+        **kwargs: 发送的参数。
     &#34;&#34;&#34;
     return await self.bus.emit(event, *args, **kwargs)</code></pre>
 </details>
@@ -493,8 +520,12 @@ async def handler(event, payload):
     ...
 </code></pre>
 <h2 id="args">Args</h2>
-<p>event (<code><a title="mirai_extensions.trigger.Filter" href="#mirai_extensions.trigger.Filter">Filter</a></code>): 过滤器。
-priority (<code>int</code>): 处理器的优先级，小者优先。</p></div>
+<dl>
+<dt><strong><code>event</code></strong></dt>
+<dd>过滤器。</dd>
+<dt><strong><code>priority</code></strong></dt>
+<dd>处理器的优先级，小者优先。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -510,8 +541,8 @@ priority (<code>int</code>): 处理器的优先级，小者优先。</p></div>
     ```
 
     Args:
-        event (`Filter`): 过滤器。
-        priority (`int`): 处理器的优先级，小者优先。
+        event: 过滤器。
+        priority: 处理器的优先级，小者优先。
     &#34;&#34;&#34;
     def decorator(func: THandler) -&gt; THandler:
         self.subscribe(event, func, priority)
@@ -526,9 +557,14 @@ priority (<code>int</code>): 处理器的优先级，小者优先。</p></div>
 <dd>
 <div class="desc"><p>注册一个过滤器的处理器。</p>
 <h2 id="args">Args</h2>
-<p>event (<code><a title="mirai_extensions.trigger.Filter" href="#mirai_extensions.trigger.Filter">Filter</a></code>): 过滤器。
-func (<code>Callable</code>): 处理器。
-priority (<code>int</code>): 处理器的优先级，小者优先。</p></div>
+<dl>
+<dt><strong><code>event</code></strong></dt>
+<dd>过滤器。</dd>
+<dt><strong><code>func</code></strong></dt>
+<dd>处理器。</dd>
+<dt><strong><code>priority</code></strong></dt>
+<dd>处理器的优先级，小者优先。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -537,9 +573,9 @@ priority (<code>int</code>): 处理器的优先级，小者优先。</p></div>
     &#34;&#34;&#34;注册一个过滤器的处理器。
 
     Args:
-        event (`Filter`): 过滤器。
-        func (`Callable`): 处理器。
-        priority (`int`): 处理器的优先级，小者优先。
+        event: 过滤器。
+        func: 处理器。
+        priority: 处理器的优先级，小者优先。
     &#34;&#34;&#34;
     filter_ = event
     event_name = filter_.event_name
@@ -555,8 +591,12 @@ priority (<code>int</code>): 处理器的优先级，小者优先。</p></div>
 <dd>
 <div class="desc"><p>取消一个过滤器的处理器。</p>
 <h2 id="args">Args</h2>
-<p>event (<code><a title="mirai_extensions.trigger.Filter" href="#mirai_extensions.trigger.Filter">Filter</a></code>): 过滤器。
-func (<code>Callable</code>): 处理器。</p></div>
+<dl>
+<dt><strong><code>event</code></strong></dt>
+<dd>过滤器。</dd>
+<dt><strong><code>func</code></strong></dt>
+<dd>处理器。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -565,8 +605,8 @@ func (<code>Callable</code>): 处理器。</p></div>
     &#34;&#34;&#34;取消一个过滤器的处理器。
 
     Args:
-        event (`Filter`): 过滤器。
-        func (`Callable`): 处理器。
+        event: 过滤器。
+        func: 处理器。
     &#34;&#34;&#34;
     try:
         self._handlers[event.event_name].remove((event, func))
@@ -604,8 +644,12 @@ async def on_friend_message(event: FriendMessage):
 </code></pre>
 <p><code>inc.wait</code> 的返回值为过滤器的返回值。当达到超时后，返回 <code>None</code>。</p>
 <h2 id="args">Args</h2>
-<p>bus (<code>AbstractEventBus</code>): 事件总线。
-priority (<code>int</code>): 中断控制器工作的优先级，默认值 15。</p></div>
+<dl>
+<dt><strong><code>bus</code></strong></dt>
+<dd>事件总线。</dd>
+<dt><strong><code>priority</code></strong></dt>
+<dd>中断控制器工作的优先级，默认值 15。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -641,8 +685,8 @@ priority (<code>int</code>): 中断控制器工作的优先级，默认值 15。
     def __init__(self, bus: AbstractEventBus, priority: int = 15):
         &#34;&#34;&#34;
         Args:
-            bus (`AbstractEventBus`): 事件总线。
-            priority (`int`): 中断控制器工作的优先级，默认值 15。
+            bus: 事件总线。
+            priority: 中断控制器工作的优先级，默认值 15。
         &#34;&#34;&#34;
         self.bus = bus
         self._triggers: Dict[Any, PriorityDict[Trigger]] = {}
@@ -668,12 +712,12 @@ priority (<code>int</code>): 中断控制器工作的优先级，默认值 15。
         &#34;&#34;&#34;监听一个过滤器或触发器，等待其完成。
 
         Args:
-            trigger (`Union[Filter, Trigger]`): 过滤器或触发器。
-            timeout (`float`): 超时时间，单位为秒。
+            trigger: 过滤器或触发器。
+            timeout: 超时时间，单位为秒。
 
         Returns:
-            `Any`: 触发器的结果。
-            `None`: 触发器超时。
+            Any: 触发器的结果。
+            None: 触发器超时。
         &#34;&#34;&#34;
         event_name = trigger.event_name
         if isinstance(trigger, Filter):
@@ -700,11 +744,19 @@ priority (<code>int</code>): 中断控制器工作的优先级，默认值 15。
 <dd>
 <div class="desc"><p>监听一个过滤器或触发器，等待其完成。</p>
 <h2 id="args">Args</h2>
-<p>trigger (<code>Union[<a title="mirai_extensions.trigger.Filter" href="#mirai_extensions.trigger.Filter">Filter</a>, <a title="mirai_extensions.trigger.Trigger" href="#mirai_extensions.trigger.Trigger">Trigger</a>]</code>): 过滤器或触发器。
-timeout (<code>float</code>): 超时时间，单位为秒。</p>
+<dl>
+<dt><strong><code>trigger</code></strong></dt>
+<dd>过滤器或触发器。</dd>
+<dt><strong><code>timeout</code></strong></dt>
+<dd>超时时间，单位为秒。</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p><code>Any</code>: 触发器的结果。
-<code>None</code>: 触发器超时。</p></div>
+<dl>
+<dt><code>Any</code></dt>
+<dd>触发器的结果。</dd>
+<dt><code>None</code></dt>
+<dd>触发器超时。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -718,12 +770,12 @@ timeout (<code>float</code>): 超时时间，单位为秒。</p>
     &#34;&#34;&#34;监听一个过滤器或触发器，等待其完成。
 
     Args:
-        trigger (`Union[Filter, Trigger]`): 过滤器或触发器。
-        timeout (`float`): 超时时间，单位为秒。
+        trigger: 过滤器或触发器。
+        timeout: 超时时间，单位为秒。
 
     Returns:
-        `Any`: 触发器的结果。
-        `None`: 触发器超时。
+        Any: 触发器的结果。
+        None: 触发器超时。
     &#34;&#34;&#34;
     event_name = trigger.event_name
     if isinstance(trigger, Filter):
@@ -752,11 +804,18 @@ timeout (<code>float</code>): 超时时间，单位为秒。</p>
 <dd>
 <div class="desc"><p>临时消息触发器。判断只接受指定群的某个群成员发来的消息，或必需引用某条消息。</p>
 <h2 id="args">Args</h2>
-<p>group (<code>Union[Group, int, None]</code>): 指定群。
-group_member (<code>Union[GroupMember, int, None]</code>): 指定群成员。
-quote (<code>Union[MessageEvent, MessageChain, int, None]</code>): 指定引用某条消息。
-priority (<code>int</code>): 优先级，小者优先。
-filter (<code>Optional[TFilter[TempMessage]]</code>): 过滤器。</p></div>
+<dl>
+<dt><strong><code>group</code></strong></dt>
+<dd>指定群。</dd>
+<dt><strong><code>group_member</code></strong></dt>
+<dd>指定群成员。</dd>
+<dt><strong><code>quote</code></strong></dt>
+<dd>指定引用某条消息。</dd>
+<dt><strong><code>priority</code></strong></dt>
+<dd>优先级，小者优先。</dd>
+<dt><strong><code>filter</code></strong></dt>
+<dd>过滤器。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -772,11 +831,11 @@ filter (<code>Optional[TFilter[TempMessage]]</code>): 过滤器。</p></div>
     ):
         &#34;&#34;&#34;
         Args:
-            group (`Union[Group, int, None]`): 指定群。
-            group_member (`Union[GroupMember, int, None]`): 指定群成员。
-            quote (`Union[MessageEvent, MessageChain, int, None]`): 指定引用某条消息。
-            priority (`int`): 优先级，小者优先。
-            filter (`Optional[TFilter[TempMessage]]`): 过滤器。
+            group: 指定群。
+            group_member: 指定群成员。
+            quote: 指定引用某条消息。
+            priority: 优先级，小者优先。
+            filter: 过滤器。
         &#34;&#34;&#34;
         mixin = []
         if group_member:
@@ -830,8 +889,12 @@ result = await trigger.wait()
 <p><code>wait</code> 方法有一个可选的 <code>timeout</code> 参数，表示等待的限时，如果超时则返回 None。</p>
 <p>使用 <code>catch</code> 方法尝试捕获事件。事件捕获成功后，触发器会进入已完成状态。</p>
 <h2 id="args">Args</h2>
-<p>filter (<code><a title="mirai_extensions.trigger.Filter" href="#mirai_extensions.trigger.Filter">Filter</a>[TEvent]</code>): 过滤器。
-priority (<code>int</code>): 优先级，小者优先。</p></div>
+<dl>
+<dt><strong><code>filter</code></strong></dt>
+<dd>过滤器。</dd>
+<dt><strong><code>priority</code></strong></dt>
+<dd>优先级，小者优先。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -878,8 +941,8 @@ priority (<code>int</code>): 优先级，小者优先。</p></div>
     ):
         &#34;&#34;&#34;
         Args:
-            filter (`Filter[TEvent]`): 过滤器。
-            priority (`int`): 优先级，小者优先。
+            filter: 过滤器。
+            priority: 优先级，小者优先。
         &#34;&#34;&#34;
         self.priority = priority
         self.filter = filter
@@ -904,10 +967,10 @@ priority (<code>int</code>): 优先级，小者优先。</p></div>
         事件捕获成功后，触发器会进入已完成状态。
 
         Args
-            event (`TEvent`): 事件。
+            event: 事件。
 
         Returns:
-            `bool`: 捕获成功与否。
+            bool: 捕获成功与否。
         &#34;&#34;&#34;
         if self._future is None or self.done():
             return False
@@ -937,7 +1000,7 @@ priority (<code>int</code>): 优先级，小者优先。</p></div>
         回调函数接受唯一参数：触发器本身。
 
         Args:
-            callback (`Callable[[&#39;Trigger&#39;], Any]`): 回调函数。
+            callback: 回调函数。
         &#34;&#34;&#34;
         if self._future:
             self._future.add_done_callback(lambda _: callback(self))
@@ -950,7 +1013,7 @@ priority (<code>int</code>): 优先级，小者优先。</p></div>
         注意，此方法必须被异步函数调用或间接调用。
 
         Returns:
-            `Trigger[TEvent]`: 触发器本身。
+            Trigger[TEvent]: 触发器本身。
         &#34;&#34;&#34;
         if self._future:
             self._future.cancel()
@@ -962,11 +1025,11 @@ priority (<code>int</code>): 优先级，小者优先。</p></div>
         &#34;&#34;&#34;等待事件触发，返回事件触发器的结果。
 
         Args:
-            timeout (`float`): 超时时间，单位为秒。
+            timeout: 超时时间，单位为秒。
 
         Returns:
-            `Any`: 触发器的结果。
-            `None`: 触发器超时。
+            Any: 触发器的结果。
+            None: 触发器超时。
         &#34;&#34;&#34;
         if self._waited:
             raise RuntimeError(&#39;触发器已被等待。&#39;)
@@ -1024,7 +1087,10 @@ def event_name(self) -&gt; Type[TEvent]:
 <div class="desc"><p>添加触发器完成后的回调。</p>
 <p>回调函数接受唯一参数：触发器本身。</p>
 <h2 id="args">Args</h2>
-<p>callback (<code>Callable[['Trigger'], Any]</code>): 回调函数。</p></div>
+<dl>
+<dt><strong><code>callback</code></strong></dt>
+<dd>回调函数。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1035,7 +1101,7 @@ def event_name(self) -&gt; Type[TEvent]:
     回调函数接受唯一参数：触发器本身。
 
     Args:
-        callback (`Callable[[&#39;Trigger&#39;], Any]`): 回调函数。
+        callback: 回调函数。
     &#34;&#34;&#34;
     if self._future:
         self._future.add_done_callback(lambda _: callback(self))</code></pre>
@@ -1050,9 +1116,12 @@ def event_name(self) -&gt; Type[TEvent]:
 事件触发器将把过滤器的返回值作为结果。</p>
 <p>事件捕获成功后，触发器会进入已完成状态。</p>
 <p>Args
-event (<code>TEvent</code>): 事件。</p>
+event: 事件。</p>
 <h2 id="returns">Returns</h2>
-<p><code>bool</code>: 捕获成功与否。</p></div>
+<dl>
+<dt><code>bool</code></dt>
+<dd>捕获成功与否。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1066,10 +1135,10 @@ event (<code>TEvent</code>): 事件。</p>
     事件捕获成功后，触发器会进入已完成状态。
 
     Args
-        event (`TEvent`): 事件。
+        event: 事件。
 
     Returns:
-        `bool`: 捕获成功与否。
+        bool: 捕获成功与否。
     &#34;&#34;&#34;
     if self._future is None or self.done():
         return False
@@ -1112,7 +1181,10 @@ event (<code>TEvent</code>): 事件。</p>
 <p>此方法将丢弃当前结果，并将触发器设置为未完成状态。</p>
 <p>注意，此方法必须被异步函数调用或间接调用。</p>
 <h2 id="returns">Returns</h2>
-<p><code><a title="mirai_extensions.trigger.Trigger" href="#mirai_extensions.trigger.Trigger">Trigger</a>[TEvent]</code>: 触发器本身。</p></div>
+<dl>
+<dt><code><a title="mirai_extensions.trigger.Trigger" href="#mirai_extensions.trigger.Trigger">Trigger</a>[TEvent]</code></dt>
+<dd>触发器本身。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1125,7 +1197,7 @@ event (<code>TEvent</code>): 事件。</p>
     注意，此方法必须被异步函数调用或间接调用。
 
     Returns:
-        `Trigger[TEvent]`: 触发器本身。
+        Trigger[TEvent]: 触发器本身。
     &#34;&#34;&#34;
     if self._future:
         self._future.cancel()
@@ -1140,10 +1212,17 @@ event (<code>TEvent</code>): 事件。</p>
 <dd>
 <div class="desc"><p>等待事件触发，返回事件触发器的结果。</p>
 <h2 id="args">Args</h2>
-<p>timeout (<code>float</code>): 超时时间，单位为秒。</p>
+<dl>
+<dt><strong><code>timeout</code></strong></dt>
+<dd>超时时间，单位为秒。</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p><code>Any</code>: 触发器的结果。
-<code>None</code>: 触发器超时。</p></div>
+<dl>
+<dt><code>Any</code></dt>
+<dd>触发器的结果。</dd>
+<dt><code>None</code></dt>
+<dd>触发器超时。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1152,11 +1231,11 @@ event (<code>TEvent</code>): 事件。</p>
     &#34;&#34;&#34;等待事件触发，返回事件触发器的结果。
 
     Args:
-        timeout (`float`): 超时时间，单位为秒。
+        timeout: 超时时间，单位为秒。
 
     Returns:
-        `Any`: 触发器的结果。
-        `None`: 触发器超时。
+        Any: 触发器的结果。
+        None: 触发器超时。
     &#34;&#34;&#34;
     if self._waited:
         raise RuntimeError(&#39;触发器已被等待。&#39;)

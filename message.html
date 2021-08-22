@@ -126,10 +126,10 @@ class FriendMessageFilter(Filter[FriendMessage]):
     ):
         &#34;&#34;&#34;
         Args:
-            friend (`Union[Friend, int, None]`): 指定好友。
-            quote (`Union[MessageEvent, MessageChain, int, None]`): 指定引用某条消息。
-            priority (`int`): 优先级，小者优先。
-            filter (`Optional[TFilter[FriendMessage]]`): 过滤器。
+            friend: 指定好友。
+            quote: 指定引用某条消息。
+            priority: 优先级，小者优先。
+            filter: 过滤器。
         &#34;&#34;&#34;
         mixin = []
         if friend:
@@ -156,11 +156,11 @@ class GroupMessageFilter(Filter[GroupMessage]):
     ):
         &#34;&#34;&#34;
         Args:
-            group (`Union[Group, int, None]`): 指定群。
-            group_member (`Union[GroupMember, int, None]`): 指定群成员。
-            quote (`Union[MessageEvent, MessageChain, int, None]`): 指定引用某条消息。
-            priority (`int`): 优先级，小者优先。
-            filter (`Optional[TFilter[GroupMessage]]`): 过滤器。
+            group: 指定群。
+            group_member: 指定群成员。
+            quote: 指定引用某条消息。
+            priority: 优先级，小者优先。
+            filter: 过滤器。
         &#34;&#34;&#34;
         mixin = []
         if group_member:
@@ -184,11 +184,11 @@ class TempMessageFilter(Filter[TempMessage]):
     ):
         &#34;&#34;&#34;
         Args:
-            group (`Union[Group, int, None]`): 指定群。
-            group_member (`Union[GroupMember, int, None]`): 指定群成员。
-            quote (`Union[MessageEvent, MessageChain, int, None]`): 指定引用某条消息。
-            priority (`int`): 优先级，小者优先。
-            filter (`Optional[TFilter[TempMessage]]`): 过滤器。
+            group: 指定群。
+            group_member: 指定群成员。
+            quote: 指定引用某条消息。
+            priority: 优先级，小者优先。
+            filter: 过滤器。
         &#34;&#34;&#34;
         mixin = []
         if group_member:
@@ -219,8 +219,11 @@ class TempMessageFilter(Filter[TempMessage]):
 <p>事件过滤器提供了 mixin 机制，允许混入其他过滤器。</p>
 <p>过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p>
 <h2 id="args">Args</h2>
-<p>mixin (<code>Iterable['BaseFilter[TEvent]']</code>): 过滤器混入。
-过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p></div>
+<dl>
+<dt><strong><code>mixin</code></strong></dt>
+<dd>过滤器混入。
+过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -267,10 +270,16 @@ class TempMessageFilter(Filter[TempMessage]):
 <dd>
 <div class="desc"><p>好友消息触发器。判断只接受指定好友发来的消息，或必需引用某条消息。</p>
 <h2 id="args">Args</h2>
-<p>friend (<code>Union[Friend, int, None]</code>): 指定好友。
-quote (<code>Union[MessageEvent, MessageChain, int, None]</code>): 指定引用某条消息。
-priority (<code>int</code>): 优先级，小者优先。
-filter (<code>Optional[TFilter[FriendMessage]]</code>): 过滤器。</p></div>
+<dl>
+<dt><strong><code>friend</code></strong></dt>
+<dd>指定好友。</dd>
+<dt><strong><code>quote</code></strong></dt>
+<dd>指定引用某条消息。</dd>
+<dt><strong><code>priority</code></strong></dt>
+<dd>优先级，小者优先。</dd>
+<dt><strong><code>filter</code></strong></dt>
+<dd>过滤器。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -285,10 +294,10 @@ filter (<code>Optional[TFilter[FriendMessage]]</code>): 过滤器。</p></div>
     ):
         &#34;&#34;&#34;
         Args:
-            friend (`Union[Friend, int, None]`): 指定好友。
-            quote (`Union[MessageEvent, MessageChain, int, None]`): 指定引用某条消息。
-            priority (`int`): 优先级，小者优先。
-            filter (`Optional[TFilter[FriendMessage]]`): 过滤器。
+            friend: 指定好友。
+            quote: 指定引用某条消息。
+            priority: 优先级，小者优先。
+            filter: 过滤器。
         &#34;&#34;&#34;
         mixin = []
         if friend:
@@ -329,8 +338,11 @@ filter (<code>Optional[TFilter[FriendMessage]]</code>): 过滤器。</p></div>
 <p>事件过滤器提供了 mixin 机制，允许混入其他过滤器。</p>
 <p>过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p>
 <h2 id="args">Args</h2>
-<p>mixin (<code>Iterable['BaseFilter[TEvent]']</code>): 过滤器混入。
-过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p></div>
+<dl>
+<dt><strong><code>mixin</code></strong></dt>
+<dd>过滤器混入。
+过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -372,8 +384,11 @@ filter (<code>Optional[TFilter[FriendMessage]]</code>): 过滤器。</p></div>
 <p>事件过滤器提供了 mixin 机制，允许混入其他过滤器。</p>
 <p>过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p>
 <h2 id="args">Args</h2>
-<p>mixin (<code>Iterable['BaseFilter[TEvent]']</code>): 过滤器混入。
-过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p></div>
+<dl>
+<dt><strong><code>mixin</code></strong></dt>
+<dd>过滤器混入。
+过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -416,11 +431,18 @@ filter (<code>Optional[TFilter[FriendMessage]]</code>): 过滤器。</p></div>
 <dd>
 <div class="desc"><p>群消息触发器。判断只接受指定群的某个群成员发来的消息，或必需引用某条消息。</p>
 <h2 id="args">Args</h2>
-<p>group (<code>Union[Group, int, None]</code>): 指定群。
-group_member (<code>Union[GroupMember, int, None]</code>): 指定群成员。
-quote (<code>Union[MessageEvent, MessageChain, int, None]</code>): 指定引用某条消息。
-priority (<code>int</code>): 优先级，小者优先。
-filter (<code>Optional[TFilter[GroupMessage]]</code>): 过滤器。</p></div>
+<dl>
+<dt><strong><code>group</code></strong></dt>
+<dd>指定群。</dd>
+<dt><strong><code>group_member</code></strong></dt>
+<dd>指定群成员。</dd>
+<dt><strong><code>quote</code></strong></dt>
+<dd>指定引用某条消息。</dd>
+<dt><strong><code>priority</code></strong></dt>
+<dd>优先级，小者优先。</dd>
+<dt><strong><code>filter</code></strong></dt>
+<dd>过滤器。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -436,11 +458,11 @@ filter (<code>Optional[TFilter[GroupMessage]]</code>): 过滤器。</p></div>
     ):
         &#34;&#34;&#34;
         Args:
-            group (`Union[Group, int, None]`): 指定群。
-            group_member (`Union[GroupMember, int, None]`): 指定群成员。
-            quote (`Union[MessageEvent, MessageChain, int, None]`): 指定引用某条消息。
-            priority (`int`): 优先级，小者优先。
-            filter (`Optional[TFilter[GroupMessage]]`): 过滤器。
+            group: 指定群。
+            group_member: 指定群成员。
+            quote: 指定引用某条消息。
+            priority: 优先级，小者优先。
+            filter: 过滤器。
         &#34;&#34;&#34;
         mixin = []
         if group_member:
@@ -478,8 +500,11 @@ filter (<code>Optional[TFilter[GroupMessage]]</code>): 过滤器。</p></div>
 <p>事件过滤器提供了 mixin 机制，允许混入其他过滤器。</p>
 <p>过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p>
 <h2 id="args">Args</h2>
-<p>mixin (<code>Iterable['BaseFilter[TEvent]']</code>): 过滤器混入。
-过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p></div>
+<dl>
+<dt><strong><code>mixin</code></strong></dt>
+<dd>过滤器混入。
+过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -532,11 +557,18 @@ filter (<code>Optional[TFilter[GroupMessage]]</code>): 过滤器。</p></div>
 <dd>
 <div class="desc"><p>临时消息触发器。判断只接受指定群的某个群成员发来的消息，或必需引用某条消息。</p>
 <h2 id="args">Args</h2>
-<p>group (<code>Union[Group, int, None]</code>): 指定群。
-group_member (<code>Union[GroupMember, int, None]</code>): 指定群成员。
-quote (<code>Union[MessageEvent, MessageChain, int, None]</code>): 指定引用某条消息。
-priority (<code>int</code>): 优先级，小者优先。
-filter (<code>Optional[TFilter[TempMessage]]</code>): 过滤器。</p></div>
+<dl>
+<dt><strong><code>group</code></strong></dt>
+<dd>指定群。</dd>
+<dt><strong><code>group_member</code></strong></dt>
+<dd>指定群成员。</dd>
+<dt><strong><code>quote</code></strong></dt>
+<dd>指定引用某条消息。</dd>
+<dt><strong><code>priority</code></strong></dt>
+<dd>优先级，小者优先。</dd>
+<dt><strong><code>filter</code></strong></dt>
+<dd>过滤器。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -552,11 +584,11 @@ filter (<code>Optional[TFilter[TempMessage]]</code>): 过滤器。</p></div>
     ):
         &#34;&#34;&#34;
         Args:
-            group (`Union[Group, int, None]`): 指定群。
-            group_member (`Union[GroupMember, int, None]`): 指定群成员。
-            quote (`Union[MessageEvent, MessageChain, int, None]`): 指定引用某条消息。
-            priority (`int`): 优先级，小者优先。
-            filter (`Optional[TFilter[TempMessage]]`): 过滤器。
+            group: 指定群。
+            group_member: 指定群成员。
+            quote: 指定引用某条消息。
+            priority: 优先级，小者优先。
+            filter: 过滤器。
         &#34;&#34;&#34;
         mixin = []
         if group_member:

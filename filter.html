@@ -50,7 +50,7 @@ class BaseFilter(Generic[TEvent]):
     def __init__(self, mixin: Iterable[&#39;BaseFilter[TEvent]&#39;]):
         &#34;&#34;&#34;
         Args:
-            mixin (`Iterable[&#39;BaseFilter[TEvent]&#39;]`): 过滤器混入。
+            mixin: 过滤器混入。
                 过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。
         &#34;&#34;&#34;
         self.mixin = list(mixin)
@@ -68,11 +68,11 @@ class BaseFilter(Generic[TEvent]):
         &#34;&#34;&#34;尝试捕获并解析一个事件。
 
         Args:
-            event (`TEvent`): 事件。
+            event: 事件。
 
         Returns:
-            `Any`: 解析后的结果。
-            `None`: 未捕获。
+            Any: 解析后的结果。
+            None: 未捕获。
         &#34;&#34;&#34;
         if any(filter.catch(event) is None for filter in self.mixin):
             return None
@@ -115,10 +115,10 @@ class Filter(BaseFilter[TEvent]):
     ):
         &#34;&#34;&#34;
         Args:
-            event_name (`Type[TEvent]`): 过滤器捕获的事件类型。
-            mixin (`Iterable[BaseFilter[TEvent]]`): 过滤器混入。
+            event_name: 过滤器捕获的事件类型。
+            mixin: 过滤器混入。
                 过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。
-            func (`Optional[TFilter[TEvent]]`): 自定义的捕获函数。
+            func: 自定义的捕获函数。
         &#34;&#34;&#34;
         super().__init__(mixin or [])
         self.event_name = event_name
@@ -152,8 +152,11 @@ class Filter(BaseFilter[TEvent]):
 <p>事件过滤器提供了 mixin 机制，允许混入其他过滤器。</p>
 <p>过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p>
 <h2 id="args">Args</h2>
-<p>mixin (<code>Iterable['BaseFilter[TEvent]']</code>): 过滤器混入。
-过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</p></div>
+<dl>
+<dt><strong><code>mixin</code></strong></dt>
+<dd>过滤器混入。
+过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -171,7 +174,7 @@ class Filter(BaseFilter[TEvent]):
     def __init__(self, mixin: Iterable[&#39;BaseFilter[TEvent]&#39;]):
         &#34;&#34;&#34;
         Args:
-            mixin (`Iterable[&#39;BaseFilter[TEvent]&#39;]`): 过滤器混入。
+            mixin: 过滤器混入。
                 过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。
         &#34;&#34;&#34;
         self.mixin = list(mixin)
@@ -189,11 +192,11 @@ class Filter(BaseFilter[TEvent]):
         &#34;&#34;&#34;尝试捕获并解析一个事件。
 
         Args:
-            event (`TEvent`): 事件。
+            event: 事件。
 
         Returns:
-            `Any`: 解析后的结果。
-            `None`: 未捕获。
+            Any: 解析后的结果。
+            None: 未捕获。
         &#34;&#34;&#34;
         if any(filter.catch(event) is None for filter in self.mixin):
             return None
@@ -226,10 +229,17 @@ class Filter(BaseFilter[TEvent]):
 <dd>
 <div class="desc"><p>尝试捕获并解析一个事件。</p>
 <h2 id="args">Args</h2>
-<p>event (<code>TEvent</code>): 事件。</p>
+<dl>
+<dt><strong><code>event</code></strong></dt>
+<dd>事件。</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p><code>Any</code>: 解析后的结果。
-<code>None</code>: 未捕获。</p></div>
+<dl>
+<dt><code>Any</code></dt>
+<dd>解析后的结果。</dd>
+<dt><code>None</code></dt>
+<dd>未捕获。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -238,11 +248,11 @@ class Filter(BaseFilter[TEvent]):
     &#34;&#34;&#34;尝试捕获并解析一个事件。
 
     Args:
-        event (`TEvent`): 事件。
+        event: 事件。
 
     Returns:
-        `Any`: 解析后的结果。
-        `None`: 未捕获。
+        Any: 解析后的结果。
+        None: 未捕获。
     &#34;&#34;&#34;
     if any(filter.catch(event) is None for filter in self.mixin):
         return None
@@ -275,10 +285,15 @@ def filter_two(event: FriendMessage):
 <p>上例中的过滤器将检测好友消息的发送对象，只有来自 12345678 的消息会被捕获。其他情况下，过滤器返回默认值 None，
 不会被捕获。</p>
 <h2 id="args">Args</h2>
-<p>event_name (<code>Type[TEvent]</code>): 过滤器捕获的事件类型。
-mixin (<code>Iterable[<a title="mirai_extensions.trigger.filter.BaseFilter" href="#mirai_extensions.trigger.filter.BaseFilter">BaseFilter</a>[TEvent]]</code>): 过滤器混入。
-过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。
-func (<code>Optional[TFilter[TEvent]]</code>): 自定义的捕获函数。</p></div>
+<dl>
+<dt><strong><code>event_name</code></strong></dt>
+<dd>过滤器捕获的事件类型。</dd>
+<dt><strong><code>mixin</code></strong></dt>
+<dd>过滤器混入。
+过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。</dd>
+<dt><strong><code>func</code></strong></dt>
+<dd>自定义的捕获函数。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -319,10 +334,10 @@ func (<code>Optional[TFilter[TEvent]]</code>): 自定义的捕获函数。</p></
     ):
         &#34;&#34;&#34;
         Args:
-            event_name (`Type[TEvent]`): 过滤器捕获的事件类型。
-            mixin (`Iterable[BaseFilter[TEvent]]`): 过滤器混入。
+            event_name: 过滤器捕获的事件类型。
+            mixin: 过滤器混入。
                 过滤器会先检查混入的过滤器，若任何一个未捕获，直接停止捕获，返回“未捕获”状态。
-            func (`Optional[TFilter[TEvent]]`): 自定义的捕获函数。
+            func: 自定义的捕获函数。
         &#34;&#34;&#34;
         super().__init__(mixin or [])
         self.event_name = event_name

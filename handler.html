@@ -72,8 +72,8 @@ class HandlerControl(AbstractEventBus):
     def __init__(self, bus: AbstractEventBus, priority: int = 0):
         &#34;&#34;&#34;
         Args:
-            bus (`AbstractEventBus`): 事件总线。
-            priority (`int`): 事件接收控制器工作的优先级，小者优先。
+            bus: 事件总线。
+            priority: 事件接收控制器工作的优先级，小者优先。
         &#34;&#34;&#34;
         self.bus = bus
         self.priority = priority
@@ -94,9 +94,9 @@ class HandlerControl(AbstractEventBus):
         &#34;&#34;&#34;注册一个过滤器的处理器。
 
         Args:
-            event (`Filter`): 过滤器。
-            func (`Callable`): 处理器。
-            priority (`int`): 处理器的优先级，小者优先。
+            event: 过滤器。
+            func: 处理器。
+            priority: 处理器的优先级，小者优先。
         &#34;&#34;&#34;
         filter_ = event
         event_name = filter_.event_name
@@ -109,8 +109,8 @@ class HandlerControl(AbstractEventBus):
         &#34;&#34;&#34;取消一个过滤器的处理器。
 
         Args:
-            event (`Filter`): 过滤器。
-            func (`Callable`): 处理器。
+            event: 过滤器。
+            func: 处理器。
         &#34;&#34;&#34;
         try:
             self._handlers[event.event_name].remove((event, func))
@@ -128,8 +128,8 @@ class HandlerControl(AbstractEventBus):
         ```
 
         Args:
-            event (`Filter`): 过滤器。
-            priority (`int`): 处理器的优先级，小者优先。
+            event: 过滤器。
+            priority: 处理器的优先级，小者优先。
         &#34;&#34;&#34;
         def decorator(func: THandler) -&gt; THandler:
             self.subscribe(event, func, priority)
@@ -142,7 +142,8 @@ class HandlerControl(AbstractEventBus):
 
         Args:
             event: 事件名。
-            *args, **kwargs: 发送的参数。
+            *args: 发送的参数。
+            **kwargs: 发送的参数。
         &#34;&#34;&#34;
         return await self.bus.emit(event, *args, **kwargs)</code></pre>
 </details>
@@ -178,8 +179,12 @@ async def handler(event: FriendMessage, payload: str):
     ...
 </code></pre>
 <h2 id="args">Args</h2>
-<p>bus (<code>AbstractEventBus</code>): 事件总线。
-priority (<code>int</code>): 事件接收控制器工作的优先级，小者优先。</p></div>
+<dl>
+<dt><strong><code>bus</code></strong></dt>
+<dd>事件总线。</dd>
+<dt><strong><code>priority</code></strong></dt>
+<dd>事件接收控制器工作的优先级，小者优先。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -211,8 +216,8 @@ priority (<code>int</code>): 事件接收控制器工作的优先级，小者优
     def __init__(self, bus: AbstractEventBus, priority: int = 0):
         &#34;&#34;&#34;
         Args:
-            bus (`AbstractEventBus`): 事件总线。
-            priority (`int`): 事件接收控制器工作的优先级，小者优先。
+            bus: 事件总线。
+            priority: 事件接收控制器工作的优先级，小者优先。
         &#34;&#34;&#34;
         self.bus = bus
         self.priority = priority
@@ -233,9 +238,9 @@ priority (<code>int</code>): 事件接收控制器工作的优先级，小者优
         &#34;&#34;&#34;注册一个过滤器的处理器。
 
         Args:
-            event (`Filter`): 过滤器。
-            func (`Callable`): 处理器。
-            priority (`int`): 处理器的优先级，小者优先。
+            event: 过滤器。
+            func: 处理器。
+            priority: 处理器的优先级，小者优先。
         &#34;&#34;&#34;
         filter_ = event
         event_name = filter_.event_name
@@ -248,8 +253,8 @@ priority (<code>int</code>): 事件接收控制器工作的优先级，小者优
         &#34;&#34;&#34;取消一个过滤器的处理器。
 
         Args:
-            event (`Filter`): 过滤器。
-            func (`Callable`): 处理器。
+            event: 过滤器。
+            func: 处理器。
         &#34;&#34;&#34;
         try:
             self._handlers[event.event_name].remove((event, func))
@@ -267,8 +272,8 @@ priority (<code>int</code>): 事件接收控制器工作的优先级，小者优
         ```
 
         Args:
-            event (`Filter`): 过滤器。
-            priority (`int`): 处理器的优先级，小者优先。
+            event: 过滤器。
+            priority: 处理器的优先级，小者优先。
         &#34;&#34;&#34;
         def decorator(func: THandler) -&gt; THandler:
             self.subscribe(event, func, priority)
@@ -281,7 +286,8 @@ priority (<code>int</code>): 事件接收控制器工作的优先级，小者优
 
         Args:
             event: 事件名。
-            *args, **kwargs: 发送的参数。
+            *args: 发送的参数。
+            **kwargs: 发送的参数。
         &#34;&#34;&#34;
         return await self.bus.emit(event, *args, **kwargs)</code></pre>
 </details>
@@ -307,8 +313,11 @@ priority (<code>int</code>): 事件接收控制器工作的优先级，小者优
 <dl>
 <dt><strong><code>event</code></strong></dt>
 <dd>事件名。</dd>
-</dl>
-<p><em>args, </em>*kwargs: 发送的参数。</p></div>
+<dt><strong><code>*args</code></strong></dt>
+<dd>发送的参数。</dd>
+<dt><strong><code>**kwargs</code></strong></dt>
+<dd>发送的参数。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -318,7 +327,8 @@ priority (<code>int</code>): 事件接收控制器工作的优先级，小者优
 
     Args:
         event: 事件名。
-        *args, **kwargs: 发送的参数。
+        *args: 发送的参数。
+        **kwargs: 发送的参数。
     &#34;&#34;&#34;
     return await self.bus.emit(event, *args, **kwargs)</code></pre>
 </details>
@@ -334,8 +344,12 @@ async def handler(event, payload):
     ...
 </code></pre>
 <h2 id="args">Args</h2>
-<p>event (<code>Filter</code>): 过滤器。
-priority (<code>int</code>): 处理器的优先级，小者优先。</p></div>
+<dl>
+<dt><strong><code>event</code></strong></dt>
+<dd>过滤器。</dd>
+<dt><strong><code>priority</code></strong></dt>
+<dd>处理器的优先级，小者优先。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -351,8 +365,8 @@ priority (<code>int</code>): 处理器的优先级，小者优先。</p></div>
     ```
 
     Args:
-        event (`Filter`): 过滤器。
-        priority (`int`): 处理器的优先级，小者优先。
+        event: 过滤器。
+        priority: 处理器的优先级，小者优先。
     &#34;&#34;&#34;
     def decorator(func: THandler) -&gt; THandler:
         self.subscribe(event, func, priority)
@@ -367,9 +381,14 @@ priority (<code>int</code>): 处理器的优先级，小者优先。</p></div>
 <dd>
 <div class="desc"><p>注册一个过滤器的处理器。</p>
 <h2 id="args">Args</h2>
-<p>event (<code>Filter</code>): 过滤器。
-func (<code>Callable</code>): 处理器。
-priority (<code>int</code>): 处理器的优先级，小者优先。</p></div>
+<dl>
+<dt><strong><code>event</code></strong></dt>
+<dd>过滤器。</dd>
+<dt><strong><code>func</code></strong></dt>
+<dd>处理器。</dd>
+<dt><strong><code>priority</code></strong></dt>
+<dd>处理器的优先级，小者优先。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -378,9 +397,9 @@ priority (<code>int</code>): 处理器的优先级，小者优先。</p></div>
     &#34;&#34;&#34;注册一个过滤器的处理器。
 
     Args:
-        event (`Filter`): 过滤器。
-        func (`Callable`): 处理器。
-        priority (`int`): 处理器的优先级，小者优先。
+        event: 过滤器。
+        func: 处理器。
+        priority: 处理器的优先级，小者优先。
     &#34;&#34;&#34;
     filter_ = event
     event_name = filter_.event_name
@@ -396,8 +415,12 @@ priority (<code>int</code>): 处理器的优先级，小者优先。</p></div>
 <dd>
 <div class="desc"><p>取消一个过滤器的处理器。</p>
 <h2 id="args">Args</h2>
-<p>event (<code>Filter</code>): 过滤器。
-func (<code>Callable</code>): 处理器。</p></div>
+<dl>
+<dt><strong><code>event</code></strong></dt>
+<dd>过滤器。</dd>
+<dt><strong><code>func</code></strong></dt>
+<dd>处理器。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -406,8 +429,8 @@ func (<code>Callable</code>): 处理器。</p></div>
     &#34;&#34;&#34;取消一个过滤器的处理器。
 
     Args:
-        event (`Filter`): 过滤器。
-        func (`Callable`): 处理器。
+        event: 过滤器。
+        func: 处理器。
     &#34;&#34;&#34;
     try:
         self._handlers[event.event_name].remove((event, func))

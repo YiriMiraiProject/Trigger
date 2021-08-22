@@ -73,8 +73,8 @@ class InterruptControl:
     def __init__(self, bus: AbstractEventBus, priority: int = 15):
         &#34;&#34;&#34;
         Args:
-            bus (`AbstractEventBus`): 事件总线。
-            priority (`int`): 中断控制器工作的优先级，默认值 15。
+            bus: 事件总线。
+            priority: 中断控制器工作的优先级，默认值 15。
         &#34;&#34;&#34;
         self.bus = bus
         self._triggers: Dict[Any, PriorityDict[Trigger]] = {}
@@ -100,12 +100,12 @@ class InterruptControl:
         &#34;&#34;&#34;监听一个过滤器或触发器，等待其完成。
 
         Args:
-            trigger (`Union[Filter, Trigger]`): 过滤器或触发器。
-            timeout (`float`): 超时时间，单位为秒。
+            trigger: 过滤器或触发器。
+            timeout: 超时时间，单位为秒。
 
         Returns:
-            `Any`: 触发器的结果。
-            `None`: 触发器超时。
+            Any: 触发器的结果。
+            None: 触发器超时。
         &#34;&#34;&#34;
         event_name = trigger.event_name
         if isinstance(trigger, Filter):
@@ -162,8 +162,12 @@ async def on_friend_message(event: FriendMessage):
 </code></pre>
 <p><code>inc.wait</code> 的返回值为过滤器的返回值。当达到超时后，返回 <code>None</code>。</p>
 <h2 id="args">Args</h2>
-<p>bus (<code>AbstractEventBus</code>): 事件总线。
-priority (<code>int</code>): 中断控制器工作的优先级，默认值 15。</p></div>
+<dl>
+<dt><strong><code>bus</code></strong></dt>
+<dd>事件总线。</dd>
+<dt><strong><code>priority</code></strong></dt>
+<dd>中断控制器工作的优先级，默认值 15。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -199,8 +203,8 @@ priority (<code>int</code>): 中断控制器工作的优先级，默认值 15。
     def __init__(self, bus: AbstractEventBus, priority: int = 15):
         &#34;&#34;&#34;
         Args:
-            bus (`AbstractEventBus`): 事件总线。
-            priority (`int`): 中断控制器工作的优先级，默认值 15。
+            bus: 事件总线。
+            priority: 中断控制器工作的优先级，默认值 15。
         &#34;&#34;&#34;
         self.bus = bus
         self._triggers: Dict[Any, PriorityDict[Trigger]] = {}
@@ -226,12 +230,12 @@ priority (<code>int</code>): 中断控制器工作的优先级，默认值 15。
         &#34;&#34;&#34;监听一个过滤器或触发器，等待其完成。
 
         Args:
-            trigger (`Union[Filter, Trigger]`): 过滤器或触发器。
-            timeout (`float`): 超时时间，单位为秒。
+            trigger: 过滤器或触发器。
+            timeout: 超时时间，单位为秒。
 
         Returns:
-            `Any`: 触发器的结果。
-            `None`: 触发器超时。
+            Any: 触发器的结果。
+            None: 触发器超时。
         &#34;&#34;&#34;
         event_name = trigger.event_name
         if isinstance(trigger, Filter):
@@ -258,11 +262,19 @@ priority (<code>int</code>): 中断控制器工作的优先级，默认值 15。
 <dd>
 <div class="desc"><p>监听一个过滤器或触发器，等待其完成。</p>
 <h2 id="args">Args</h2>
-<p>trigger (<code>Union[Filter, Trigger]</code>): 过滤器或触发器。
-timeout (<code>float</code>): 超时时间，单位为秒。</p>
+<dl>
+<dt><strong><code>trigger</code></strong></dt>
+<dd>过滤器或触发器。</dd>
+<dt><strong><code>timeout</code></strong></dt>
+<dd>超时时间，单位为秒。</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p><code>Any</code>: 触发器的结果。
-<code>None</code>: 触发器超时。</p></div>
+<dl>
+<dt><code>Any</code></dt>
+<dd>触发器的结果。</dd>
+<dt><code>None</code></dt>
+<dd>触发器超时。</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -276,12 +288,12 @@ timeout (<code>float</code>): 超时时间，单位为秒。</p>
     &#34;&#34;&#34;监听一个过滤器或触发器，等待其完成。
 
     Args:
-        trigger (`Union[Filter, Trigger]`): 过滤器或触发器。
-        timeout (`float`): 超时时间，单位为秒。
+        trigger: 过滤器或触发器。
+        timeout: 超时时间，单位为秒。
 
     Returns:
-        `Any`: 触发器的结果。
-        `None`: 触发器超时。
+        Any: 触发器的结果。
+        None: 触发器超时。
     &#34;&#34;&#34;
     event_name = trigger.event_name
     if isinstance(trigger, Filter):

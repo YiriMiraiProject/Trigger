@@ -28,7 +28,7 @@ class BaseFilter(Generic[TEvent]):
         self.mixin = list(mixin)
 
     def __new__(cls, *args, **kwargs):
-        instance = super().__new__(cls, *args, **kwargs)
+        instance = super().__new__(cls)
         instance.mixin = []
         return instance
 

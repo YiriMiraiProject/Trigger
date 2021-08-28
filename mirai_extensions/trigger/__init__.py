@@ -3,7 +3,7 @@
 事件触发器：提供更多处理事件的方式。
 """
 
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 __author__ = '忘忧北萱草'
 
 from mirai_extensions.trigger.filter import Filter

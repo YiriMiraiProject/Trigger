@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from typing import (
-    Any, Callable, Generic, Iterable, List, Optional, Type, TypeVar, Union
+    Any, Callable, Generic, Iterable, List, Optional, Type, TypeVar
 )
 
 TEvent = TypeVar('TEvent')

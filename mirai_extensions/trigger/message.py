@@ -8,7 +8,6 @@ from mirai.models.events import (
     FriendMessage, GroupMessage, MessageEvent, TempMessage
 )
 from mirai.models.message import MessageChain, Quote
-from mirai.utils import async_
 from mirai_extensions.trigger.filter import BaseFilter, TFilter, Filter
 
 logger = logging.getLogger(__name__.replace('mirai_extensions', 'mirai'))
